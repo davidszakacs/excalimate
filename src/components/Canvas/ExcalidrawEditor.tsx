@@ -136,7 +136,7 @@ function elementExtent(el: {
   y: number;
   width: number;
   height: number;
-  points?: number[][];
+  points?: readonly (readonly number[])[];
 }): [number, number, number, number] {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const elAny = el as any;

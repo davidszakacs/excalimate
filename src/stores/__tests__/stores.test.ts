@@ -302,6 +302,7 @@ describe('playbackStore', () => {
       scaleX: 1,
       scaleY: 1,
       rotation: 45,
+      drawProgress: 1,
     });
     usePlaybackStore.getState().setFrameState(frame);
     expect(usePlaybackStore.getState().frameState.get('el-1')?.opacity).toBe(0.5);

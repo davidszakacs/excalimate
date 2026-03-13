@@ -371,7 +371,7 @@ export function ExcalidrawAnimateEditor({
         ) as ExcalidrawElement[],
         appState: {
           ...scene.appState,
-          selectedElementIds: Object.fromEntries(selectedElementIds.map(id => [id, true])),
+          selectedElementIds: Object.fromEntries(selectedElementIds.map(id => [id, true as const])),
         },
         files: scene.files,
       }

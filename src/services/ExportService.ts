@@ -421,7 +421,7 @@ async function exportAnimatedSVG(options: ExportOptions): Promise<void> {
     if (steps.length > 0) {
       const safeId = elId.replace(/[^a-zA-Z0-9_-]/g, '_');
       css += `@keyframes a_${safeId} { ${steps.join(' ')} }\n`;
-      css += `#el-${safeId} { animation: a_${safeId} ${duration}ms linear forwards; transform-origin: center center; transform-box: fill-box; }\n`;
+      css += `#el-${safeId} { animation: a_${safeId} ${clipDuration}ms linear forwards; transform-origin: center center; transform-box: fill-box; }\n`;
     }
     idx++;
     onProgress?.(idx / animatedIds.size);

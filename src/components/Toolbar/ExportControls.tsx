@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Button } from '../common';
 import { Modal } from '../common';
-import { exportAnimation } from '../../services/exportService';
-import type { ExportFormat, ExportQuality } from '../../services/exportService';
+import { exportAnimation } from '../../services/ExportService';
+import type { ExportFormat, ExportQuality } from '../../services/ExportService';
 import { useAnimationStore } from '../../stores/animationStore';
 
 const FORMAT_INFO: Record<ExportFormat, { label: string; desc: string; icon: string }> = {

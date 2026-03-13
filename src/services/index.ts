@@ -5,14 +5,10 @@ export {
 } from './FileService';
 
 export {
-  exportToVideo,
-  exportToGif,
-  exportToAnimatedSvg,
-  downloadBlob,
-  downloadSvg,
+  exportAnimation,
 } from './ExportService';
 
-export type { ExportProgress, ExportOptions } from './ExportService';
+export type { ExportFormat, ExportQuality, ExportOptions } from './ExportService';
 
 export {
   getRecentProjects,
