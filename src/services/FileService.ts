@@ -64,7 +64,7 @@ export async function loadProjectFile(): Promise<AnimationProject> {
 }
 
 /**
- * Load an MCP checkpoint file (.json from animate-excalidraw MCP server).
+ * Load an MCP checkpoint file (.json from Excalimate MCP server).
  * Returns scene data and animation timeline for import into the app.
  */
 export async function loadMcpCheckpoint(): Promise<{

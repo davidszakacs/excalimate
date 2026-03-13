@@ -3,8 +3,7 @@
  */
 
 import { nanoid } from 'nanoid';
-import type { ServerState, AnimationTimeline, AnimationTrack, Keyframe, AnimatableProperty, EasingType, CameraFrame } from './types.js';
-import { PROPERTY_DEFAULTS } from './types.js';
+import type { ServerState, AnimationTrack, Keyframe, AnimatableProperty, EasingType } from './types.js';
 
 export function createDefaultState(): ServerState {
   return {
@@ -61,6 +60,7 @@ export function ensureTrack(
     t => t.targetId === targetId && t.property === property,
   );
   if (!track) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const targetType = state.scene.elements.some((e: any) => e.id === targetId) ? 'element' as const : 'group' as const;
     track = createTrack(targetId, targetType, property);
     state = {

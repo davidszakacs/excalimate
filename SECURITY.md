@@ -12,7 +12,7 @@ If you discover a security vulnerability, please report it responsibly:
 ## Architecture
 
 ### Client-Side Security
-Animate-Excalidraw is a **static single-page application**. All core functionality runs entirely in the browser:
+Excalimate is a **static single-page application**. All core functionality runs entirely in the browser:
 
 - **Rendering**: Excalidraw's Canvas2D renderer
 - **Animation**: Keyframe interpolation computed client-side

@@ -26,7 +26,7 @@ export class FileCheckpointStore implements CheckpointStore {
   private dir: string;
 
   constructor() {
-    this.dir = path.join(os.tmpdir(), 'animate-excalidraw-mcp-checkpoints');
+    this.dir = path.join(os.tmpdir(), 'excalimate-mcp-checkpoints');
     fs.mkdirSync(this.dir, { recursive: true });
   }
 

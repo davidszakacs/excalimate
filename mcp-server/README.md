@@ -1,6 +1,6 @@
-# Animate-Excalidraw MCP Server
+# Excalimate MCP Server
 
-MCP server for creating Excalidraw designs and animating them with keyframes. Designed for AI agent integration (Claude Desktop, Copilot CLI, etc.).
+Excalimate MCP server for creating Excalidraw designs and animating them with keyframes. Designed for AI agent integration (Claude Desktop, Copilot CLI, etc.).
 
 ## Features
 
@@ -35,7 +35,7 @@ Add to `claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
-    "animate-excalidraw": {
+    "excalimate": {
       "command": "node",
       "args": ["/path/to/mcp-server/dist/index.js", "--stdio"]
     }

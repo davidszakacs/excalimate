@@ -1,4 +1,4 @@
-# Animate-Excalidraw
+# Excalimate
 
 Create keyframe animations from Excalidraw designs. Draw diagrams with the full Excalidraw editor, then animate elements with opacity fades, position slides, scale effects, rotation, and arrow draw-on animations. Export as MP4, WebM, GIF, or animated SVG.
 
@@ -75,7 +75,7 @@ Add to your Claude Desktop config (`claude_desktop_config.json`):
 ```json
 {
   "mcpServers": {
-    "animate-excalidraw": {
+    "excalimate": {
       "command": "node",
       "args": ["/path/to/mcp-server/dist/index.js", "--stdio"]
     }
@@ -94,7 +94,7 @@ See [mcp-server/README.md](mcp-server/README.md) for full documentation and [mcp
 ## Architecture
 
 ```
-animate-excalidraw/
+excalimate/
 ├── src/                    # React web app (Vite + TypeScript)
 │   ├── components/         # UI components (Toolbar, Timeline, PropertyPanel, etc.)
 │   ├── core/               # Animation engine, interpolation, playback

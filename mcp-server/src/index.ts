@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Animate-Excalidraw MCP Server — Entry Point
+ * Excalimate MCP Server — Entry Point
  *
  * Supports two transports:
  *   --stdio    : For Claude Desktop / Copilot CLI
@@ -180,7 +180,7 @@ async function startHTTPServer(factoryWithSSE: (sseClients: Set<Response>) => Mc
   });
 
   app.listen(port, () => {
-    console.log(`Animate-Excalidraw MCP server listening on http://localhost:${port}/mcp`);
+    console.log(`Excalimate MCP server listening on http://localhost:${port}/mcp`);
     console.log(`Live preview SSE at http://localhost:${port}/live`);
   });
 

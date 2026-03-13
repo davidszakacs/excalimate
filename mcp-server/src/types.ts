@@ -1,5 +1,5 @@
 /**
- * Shared types for the animate-excalidraw MCP server.
+ * Shared types for the Excalimate MCP server.
  * These mirror the main app's types but are standalone (no React/Zustand).
  */
 
@@ -65,8 +65,9 @@ export interface CameraFrame {
 
 export interface ServerState {
   scene: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     elements: any[];
-    files: Record<string, any>;
+    files: Record<string, unknown>;
   };
   timeline: AnimationTimeline;
   clipStart: number;

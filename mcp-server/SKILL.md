@@ -1,14 +1,14 @@
 ---
-name: animate-excalidraw
+name: excalimate
 description: >
   Create hand-drawn Excalidraw diagrams and animate them with keyframe animations
-  using the animate-excalidraw MCP server. Use this skill when asked to create
+  using the Excalimate MCP server. Use this skill when asked to create
   animated diagrams, architecture visualizations, flow animations, reveal sequences,
   or any animated Excalidraw content. Supports opacity fades, position slides,
   scale pop-ins, arrow draw-on effects, camera pan/zoom, and staggered reveals.
 ---
 
-# Animate-Excalidraw Skill
+# Excalimate Skill
 
 ## Workflow
 

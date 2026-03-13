@@ -1,18 +1,18 @@
 {
-  "name": "@animate-excalidraw/mcp-server",
+  "name": "@excalimate/mcp-server",
   "version": "0.1.0",
   "license": "MIT",
-  "description": "MCP server for creating Excalidraw designs and animating them with keyframes",
+  "description": "Excalimate MCP server for creating Excalidraw designs and animating them with keyframes",
   "keywords": ["mcp", "excalidraw", "animation", "keyframe", "diagram"],
   "repository": {
     "type": "git",
-    "url": "https://github.com/animate-excalidraw/animate-excalidraw",
+    "url": "https://github.com/excalimate/excalimate",
     "directory": "mcp-server"
   },
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "animate-excalidraw-mcp": "dist/index.js"
+    "excalimate-mcp": "dist/index.js"
   },
   "files": [
     "dist",

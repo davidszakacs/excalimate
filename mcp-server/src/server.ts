@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
- * Animate-Excalidraw MCP Server
+ * Excalimate MCP Server
  *
  * Provides tools for creating Excalidraw scenes, animating them with keyframes,
  * and exporting the results. Designed for AI agent integration via MCP.
@@ -9,7 +10,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { nanoid } from 'nanoid';
 import type { CheckpointStore } from './checkpoint-store.js';
-import { createDefaultState, addKeyframeToState, ensureTrack, createKeyframe, addKeyframeToTrack } from './state.js';
+import { createDefaultState, addKeyframeToState } from './state.js';
 import type { ServerState, AnimatableProperty, EasingType, AnimationTrack } from './types.js';
 import { ANIMATABLE_PROPERTIES, EASING_TYPES, PROPERTY_DEFAULTS, ASPECT_RATIOS } from './types.js';
 
@@ -25,7 +26,7 @@ export function createServer(
   onStateChange?: StateChangeListener,
 ): McpServer {
   const server = new McpServer({
-    name: 'animate-excalidraw',
+    name: 'excalimate',
     version: '0.1.0',
   });
 
@@ -34,13 +35,9 @@ export function createServer(
     onStateChange?.(_sharedState);
   }
 
-  /** Get current state (for SSE endpoint) */
+   
   (server as any).__getState = () => _sharedState;
 
-  // Convenience: local alias that all tool handlers use.
-  // For mutations that reassign state (e.g., state = addKeyframeToState(...)),
-  // use updateState() instead.
-  function getS(): ServerState { return _sharedState; }
   function updateState(newState: ServerState) { _sharedState = newState; }
 
   // Read-only tools use server.tool directly.
@@ -788,7 +785,7 @@ export function createServer(
 
 // ── Reference text ────────────────────────────────────────────────
 
-const REFERENCE_TEXT = `# Animate-Excalidraw MCP Reference
+const REFERENCE_TEXT = `# Excalimate MCP Reference
 
 ## Excalidraw Element Format
 
@@ -873,7 +870,7 @@ easeInElastic, easeOutElastic, easeInBounce, easeOutBounce, step
 4. Use \`create_sequence\` for reveal animations
 5. Call \`set_clip_range\` to set export bounds
 6. Call \`save_checkpoint\` to persist
-7. User opens the checkpoint in the animate-excalidraw web app for preview/export
+7. User opens the checkpoint in the Excalimate web app for preview/export
 
 Use \`clear_scene\` to reset everything (elements + animations) or \`clear_animation\` to keep elements but remove all keyframes.
 
@@ -886,7 +883,7 @@ Use \`clear_scene\` to reset everything (elements + animations) or \`clear_anima
 \`\`\`
 `;
 
-const EXAMPLES_TEXT = `# Animate-Excalidraw — Few-Shot Examples
+const EXAMPLES_TEXT = `# Excalimate — Few-Shot Examples
 
 ## Example 1: Single Rectangle
 \`\`\`

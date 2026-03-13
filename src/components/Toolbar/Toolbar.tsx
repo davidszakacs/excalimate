@@ -16,7 +16,7 @@ export function Toolbar() {
       {/* Left section: Logo and file controls */}
       <div className="flex items-center gap-1 mr-4">
         <span className="text-sm font-semibold text-indigo-400 mr-2">
-          ✦ Animate
+          ✦ Excalimate
         </span>
         <FileControls />
       </div>

@@ -1,4 +1,4 @@
-# Animate-Excalidraw — Full Reference
+# Excalimate — Full Reference
 
 ## Element Format
 
