@@ -15,10 +15,10 @@ import { useUndoRedoStore } from '../../stores/undoRedoStore';
 import { useAppHotkeys } from '../../hooks/useAppHotkeys';
 import { computeFrameAtTime, getPlaybackController } from '../../core/engine/playbackSingleton';
 import { PROPERTY_DEFAULTS } from '../../types/animation';
-import type { AnimatableProperty } from '../../types/animation';
+import type { AnimatableProperty, Keyframe, AnimationTrack } from '../../types/animation';
 import type { ExcalidrawSceneData, AnimatableTarget } from '../../types/excalidraw';
 import { CAMERA_FRAME_TARGET_ID } from '../../stores/projectStore';
-import { extractKeyFromHash, importKeyFromString, decryptData } from '../../services/encryption';
+import { importKeyFromString, decryptData } from '../../services/encryption';
 
 export function App() {
   useAppHotkeys();
@@ -45,6 +45,7 @@ export function App() {
         if (!response.ok) throw new Error('Share not found');
         const encrypted = await response.arrayBuffer();
         const key = await importKeyFromString(keyStr);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const data = await decryptData<any>(encrypted, key);
 
         if (data.scene?.elements) {
@@ -136,7 +137,7 @@ export function App() {
 
   // Get selected keyframes for property panel
   const selectedKeyframeDetails = useMemo(() => {
-    const result: { track: typeof timeline.tracks[0]; keyframe: typeof timeline.tracks[0]['keyframes'][0] }[] = [];
+    const result: { track: AnimationTrack; keyframe: Keyframe }[] = [];
     for (const track of timeline.tracks) {
       for (const kf of track.keyframes) {
         if (selectedKeyframeIds.includes(kf.id)) {
@@ -205,7 +206,7 @@ export function App() {
     useAnimationStore.getState().removeTrack(trackId);
   }, []);
 
-  const handleUpdateKeyframe = useCallback((...args: [string, string, any]) => {
+  const handleUpdateKeyframe = useCallback((...args: [string, string, Partial<Pick<Keyframe, 'time' | 'value' | 'easing'>>]) => {
     useUndoRedoStore.getState().pushState();
     useAnimationStore.getState().updateKeyframe(...args);
   }, []);

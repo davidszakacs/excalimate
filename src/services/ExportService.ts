@@ -14,8 +14,7 @@ import {
   getFrameHeight,
   getExportResolution,
 } from '../stores/projectStore';
-import type { FrameState, ElementAnimationState } from '../types/animation';
-import { PROPERTY_DEFAULTS } from '../types/animation';
+import type { FrameState } from '../types/animation';
 import type { AnimatableTarget } from '../types/excalidraw';
 import { applyAnimationToElements } from '../core/engine/renderUtils';
 
@@ -37,6 +36,7 @@ const QUALITY_SETTINGS: Record<ExportQuality, { bitrate: number; gifQuality: num
 };
 
 function getCameraRect(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   cameraFrame: { x: number; y: number; width: number; aspectRatio: any },
   frameState: FrameState,
 ) {
@@ -55,6 +55,7 @@ function getCameraRect(
  */
 async function renderFrame(
   elements: NonDeletedExcalidrawElement[],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   files: Record<string, any>,
   frameState: FrameState,
   targets: AnimatableTarget[],
@@ -86,6 +87,7 @@ async function renderFrame(
     const vb = svg.viewBox?.baseVal;
     let sMinX = Infinity, sMinY = Infinity, sMaxX = -Infinity, sMaxY = -Infinity;
     for (const el of animated) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const a = el as any;
       if (a.points?.length > 0) {
         for (const [px, py] of a.points as number[][]) {

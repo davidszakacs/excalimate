@@ -140,7 +140,7 @@ function pixelToTime(pixel: number, zoom: number): number {
 }
 
 function TimeRuler({
-  duration,
+  duration: _duration,
   zoom,
   scrollX,
   width,
@@ -185,61 +185,6 @@ function TimeRuler({
           </span>
         </div>
       ))}
-    </div>
-  );
-}
-
-function TrackRow({
-  track,
-  isSelected,
-  targetLabel,
-  onSelect,
-  onToggleEnabled,
-  onRemove,
-  onAddKeyframeHere,
-}: {
-  track: AnimationTrack;
-  isSelected: boolean;
-  targetLabel: string;
-  onSelect: () => void;
-  onToggleEnabled: () => void;
-  onRemove: () => void;
-  onAddKeyframeHere: () => void;
-}) {
-  return (
-    <div
-      className={`flex items-center h-7 px-2 gap-1 cursor-pointer border-b border-[var(--color-border)] text-xs select-none
-        ${isSelected ? 'bg-indigo-500/10 text-indigo-300' : 'hover:bg-[var(--color-surface)] text-[var(--color-text-secondary)]'}
-        ${!track.enabled ? 'opacity-40' : ''}`}
-      onClick={onSelect}
-    >
-      <span className="shrink-0" title={PROPERTY_LABELS[track.property]}>
-        {PROPERTY_ICONS[track.property]}
-      </span>
-      <span className="truncate flex-1" title={`${targetLabel} · ${PROPERTY_LABELS[track.property]}`}>
-        {targetLabel} · {PROPERTY_LABELS[track.property]}
-      </span>
-      <button
-        className="shrink-0 text-[10px] hover:text-indigo-400"
-        onClick={(e) => { e.stopPropagation(); onAddKeyframeHere(); }}
-        title="Add keyframe at playhead"
-      >
-        ◆+
-      </button>
-      <button
-        className="shrink-0 text-[10px] hover:text-yellow-400"
-        onClick={(e) => { e.stopPropagation(); onToggleEnabled(); }}
-        title={track.enabled ? 'Mute' : 'Unmute'}
-      >
-        {track.enabled ? '●' : '○'}
-      </button>
-      <button
-        className="shrink-0 text-[10px] hover:text-red-400"
-        onClick={(e) => { e.stopPropagation(); onRemove(); }}
-        title="Remove track"
-      >
-        ✕
-      </button>
     </div>
   );
 }
@@ -313,6 +258,7 @@ export function TimelinePanel({
   const trackListRef = useRef<HTMLDivElement>(null);
   const keyframeScrollRef = useRef<HTMLDivElement>(null);
   const isSyncingScroll = useRef(false);
+  const [rulerWidth, setRulerWidth] = useState(800);
 
   // Sync vertical scroll between track list and keyframe area
   const syncScroll = useCallback((source: 'left' | 'right') => {
@@ -327,7 +273,20 @@ export function TimelinePanel({
     requestAnimationFrame(() => { isSyncingScroll.current = false; });
   }, []);
 
-  // Native wheel handler (non-passive) to prevent vertical scroll on keyframe area
+  // Track ruler width via ResizeObserver to avoid reading refs during render
+  useEffect(() => {
+    const el = keyframeAreaRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        setRulerWidth(entry.contentRect.width);
+      }
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  // Native wheel handler(non-passive) to prevent vertical scroll on keyframe area
   useEffect(() => {
     const el = keyframeScrollRef.current;
     if (!el) return;
@@ -409,7 +368,7 @@ export function TimelinePanel({
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
     },
-    [scrollX, zoom, onScrub, tracks],
+    [scrollX, zoom, onScrub, tracks, duration],
   );
 
   const handleKeyframeDragStart = useCallback(
@@ -479,6 +438,7 @@ export function TimelinePanel({
       trackListRef.current?.scrollTo({ top: scrollTop, behavior: 'smooth' });
       keyframeScrollRef.current?.scrollTo({ top: scrollTop, behavior: 'smooth' });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedElementIds]);
 
   // Clip range positions in pixels
@@ -526,7 +486,7 @@ export function TimelinePanel({
         </div>
         {/* Time ruler */}
         <div className="flex-1 overflow-hidden" ref={keyframeAreaRef} onMouseDown={handleScrubberMouseDown} aria-label="Timeline scrubber">
-          <TimeRuler duration={duration} zoom={zoom} scrollX={scrollX} width={keyframeAreaRef.current?.clientWidth ?? 800} />
+          <TimeRuler duration={duration} zoom={zoom} scrollX={scrollX} width={rulerWidth} />
         </div>
       </div>
 
@@ -539,7 +499,7 @@ export function TimelinePanel({
           style={{ width: TRACK_LIST_WIDTH }}
           onScroll={() => syncScroll('left')}
         >
-          {rows.map((row, idx) => {
+          {rows.map((row, _idx) => {
             if (row.type === 'target-header') {
               const { group, collapsed } = row;
               const isAnySelected = group.allTracks.some(t => t.id === selectedTrackId);
@@ -648,7 +608,7 @@ export function TimelinePanel({
           )}
 
           {/* Keyframe rows — matching the left sidebar structure */}
-          {rows.map((row, idx) => {
+          {rows.map((row, _idx) => {
             if (row.type === 'target-header') {
               const { group, collapsed } = row;
               // When collapsed: show ALL keyframes from all tracks in one row

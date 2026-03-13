@@ -75,6 +75,7 @@ export function useMcpLive() {
   return { connected, connect, disconnect, liveUrl, setLiveUrl };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function applyState(state: any) {
   if (import.meta.env.DEV) {
     console.debug('[MCP Live] applyState', {
@@ -88,6 +89,7 @@ function applyState(state: any) {
   // Update scene
   if (state.scene?.elements) {
     // Force element opacity to 100 — animation controls visibility via keyframes
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const elements = state.scene.elements.map((el: any) => ({ ...el, opacity: 100 }));
 
     const scene = {

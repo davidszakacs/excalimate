@@ -154,24 +154,10 @@ export function LayersPanel({
   selectedElementIds,
   onSelectElement,
 }: LayersPanelProps) {
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
-    // Default: all groups expanded
-    return new Set(targets.filter((t) => t.type === 'group').map((t) => t.id));
-  });
+  // Track manually collapsed groups (all groups expanded by default)
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
-  // Expand new groups automatically
-  const tree = useMemo(() => {
-    const newExpanded = new Set(expandedGroups);
-    for (const t of targets) {
-      if (t.type === 'group' && !newExpanded.has(t.id)) {
-        newExpanded.add(t.id);
-      }
-    }
-    if (newExpanded.size !== expandedGroups.size) {
-      setExpandedGroups(newExpanded);
-    }
-    return buildTree(targets);
-  }, [targets]);
+  const tree = useMemo(() => buildTree(targets), [targets]);
 
   const trackCountForTarget = useCallback(
     (targetId: string) => tracks.filter((t) => t.targetId === targetId).length,
@@ -184,13 +170,19 @@ export function LayersPanel({
   );
 
   const toggleExpand = useCallback((id: string) => {
-    setExpandedGroups((prev) => {
+    setCollapsedGroups((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
   }, []);
+
+  // Compute expanded groups: all groups minus manually collapsed ones
+  const expandedGroups = useMemo(() => {
+    const groupIds = targets.filter(t => t.type === 'group').map(t => t.id);
+    return new Set(groupIds.filter(id => !collapsedGroups.has(id)));
+  }, [targets, collapsedGroups]);
 
   return (
     <div className="flex flex-col h-full">

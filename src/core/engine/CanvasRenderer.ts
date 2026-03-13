@@ -25,6 +25,7 @@ export interface SceneRenderResult {
 
 export class CanvasRenderer {
   private _lastElements: NonDeletedExcalidrawElement[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private _lastFiles: Record<string, any> = {};
   private _cachedRender: SceneRenderResult | null = null;
   private _lastGeometryHash: string = '';
@@ -81,9 +82,13 @@ export class CanvasRenderer {
       // Compute bounds
       let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
       for (const el of animated) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         minX = Math.min(minX, (el as any).x);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         minY = Math.min(minY, (el as any).y);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         maxX = Math.max(maxX, (el as any).x + (el as any).width);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         maxY = Math.max(maxY, (el as any).y + (el as any).height);
       }
 
@@ -115,6 +120,7 @@ export class CanvasRenderer {
     // Include element dimensions, opacity, and drawProgress
     const parts: string[] = [];
     for (const el of elements) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const e = el as any;
       parts.push(`${e.id}:${e.width?.toFixed(1)}:${e.height?.toFixed(1)}:${e.opacity}:${e.angle?.toFixed(3)}`);
     }

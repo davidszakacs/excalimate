@@ -58,6 +58,7 @@ export function applyAnimationToElements(
   // Propagate container animations to bound text elements
   // (e.g., arrow opacity should also apply to its label text)
   for (const el of elements) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const containerId = (el as any).containerId as string | null;
     if (containerId && el.type === 'text') {
       const containerState = elStates.get(containerId);
@@ -85,6 +86,7 @@ export function applyAnimationToElements(
     const a = elStates.get(el.id);
     if (!a) return el; // No animation — return original unchanged (preserves version)
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const c = { ...el } as any;
 
     // Bump version so Excalidraw detects the change and re-renders
@@ -109,7 +111,9 @@ export function applyAnimationToElements(
 
     // Arrow binding: when bound shapes move, adjust arrow endpoints
     if ((el.type === 'arrow' || el.type === 'line') && c.points) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const startBinding = (el as any).startBinding as { elementId: string } | null;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const endBinding = (el as any).endBinding as { elementId: string } | null;
       const points = c.points as number[][];
 

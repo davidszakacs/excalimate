@@ -107,11 +107,14 @@ export function ExcalidrawAnimateEditor({
 
     // Debug: log first element's opacity to trace the issue
     if (import.meta.env.DEV && animated.length > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const first = animated.find((el: any) => el.type !== 'text') ?? animated[0];
       const baseEl = elements.find(e => e.id === first.id);
       console.debug('[AnimateEditor] opacity check', {
         id: first.id.slice(0, 10),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         baseOpacity: (baseEl as any)?.opacity,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         animatedOpacity: (first as any).opacity,
         frameStateHas: frameState.has(first.id),
         frameStateOpacity: frameState.get(first.id)?.opacity,
@@ -122,6 +125,7 @@ export function ExcalidrawAnimateEditor({
     const ghostMode = useUIStore.getState().ghostMode;
     if (ghostMode) {
       animated = animated.map(el => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const opacity = (el as any).opacity ?? 100;
         if (opacity < 15) {
           return { ...el, opacity: 15 } as typeof el;
@@ -145,6 +149,7 @@ export function ExcalidrawAnimateEditor({
     // Update Excalidraw's scene with animated elements
     updateCountRef.current++;
     api.updateScene({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       elements: animated as any,
     });
   }, [ready, scene, frameState, targets]);
@@ -160,11 +165,13 @@ export function ExcalidrawAnimateEditor({
         let animated = applyAnimationToElements(elements, frameStateRef.current, targetsRef.current);
         if (s.ghostMode) {
           animated = animated.map(el => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const opacity = (el as any).opacity ?? 100;
             return opacity < 15 ? { ...el, opacity: 15 } as typeof el : el;
           });
         }
         updateCountRef.current++;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         api.updateScene({ elements: animated as any });
       }
     });
@@ -190,6 +197,7 @@ export function ExcalidrawAnimateEditor({
       const selectedMap: Record<string, boolean> = {};
       for (const id of selectedElementIds) selectedMap[id] = true;
       api.updateScene({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         appState: { selectedElementIds: selectedMap } as any,
       });
     }
@@ -198,6 +206,7 @@ export function ExcalidrawAnimateEditor({
   // ── Handle Excalidraw onChange ──────────────────────────────────
 
   const handleChange = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (elements: readonly ExcalidrawElement[], appState: any) => {
       // Always track viewport state (even during our own updates)
       if (appState) {
@@ -231,7 +240,9 @@ export function ExcalidrawAnimateEditor({
         if (currentScene) {
           // Restore original element properties (opacity, position, etc.) from the base scene
           // because Excalidraw's elements have animated values baked in
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const origMap = new Map<string, any>();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           for (const el of currentScene.elements as any[]) origMap.set(el.id, el);
 
           const restoredElements = nonDeleted.map(el => {
@@ -242,6 +253,7 @@ export function ExcalidrawAnimateEditor({
 
           const reorderedScene = {
             ...currentScene,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             elements: restoredElements as any,
           };
           useProjectStore.getState().updateScene(reorderedScene);
@@ -296,7 +308,6 @@ export function ExcalidrawAnimateEditor({
     const handleMouseMove = (e: MouseEvent) => {
       if (!camDragRef.current) return;
       const camDrag = camDragRef.current;
-      const { zoom: z } = viewport;
       if (camDrag.handle) {
         const dx = e.clientX - camDrag.startX;
         const dy = e.clientY - camDrag.startY;
@@ -347,7 +358,7 @@ export function ExcalidrawAnimateEditor({
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [viewport.zoom]);
+  }, [viewport]);
 
   // ── Compute initial data ───────────────────────────────────────
 

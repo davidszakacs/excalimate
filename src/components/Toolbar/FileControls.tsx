@@ -14,9 +14,6 @@ import {
   generateEncryptionKey,
   encryptData,
   exportKeyToString,
-  importKeyFromString,
-  decryptData,
-  extractKeyFromHash,
 } from '../../services/encryption';
 import { extractTargets } from '../Canvas/ExcalidrawEditor';
 

@@ -1,4 +1,4 @@
-import { useRef, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { AnimationEngine } from '../core/engine/AnimationEngine';
 import type { GroupHierarchy } from '../core/engine/AnimationEngine';
 import { useAnimationStore } from '../stores/animationStore';
@@ -7,7 +7,8 @@ import { useProjectStore } from '../stores/projectStore';
 import type { FrameState } from '../types/animation';
 
 export function useAnimation(): FrameState {
-  const engineRef = useRef(new AnimationEngine());
+  // Use useState initializer so the engine is created once and is stable across renders
+  const [engine] = useState(() => new AnimationEngine());
   const { timeline } = useAnimationStore();
   const { currentTime, setFrameState } = usePlaybackStore();
   const { targets } = useProjectStore();
@@ -25,13 +26,13 @@ export function useAnimation(): FrameState {
 
   // Invalidate engine cache when timeline changes
   useEffect(() => {
-    engineRef.current.invalidateCache();
-  }, [timeline]);
+    engine.invalidateCache();
+  }, [engine, timeline]);
 
-  // Compute frame state
+  // Compute frame state using the engine
   const frameState = useMemo<FrameState>(() => {
-    return engineRef.current.computeFrame(timeline, currentTime, groupHierarchy);
-  }, [timeline, currentTime, groupHierarchy]);
+    return engine.computeFrame(timeline, currentTime, groupHierarchy);
+  }, [engine, timeline, currentTime, groupHierarchy]);
 
   // Sync to playback store
   useEffect(() => {

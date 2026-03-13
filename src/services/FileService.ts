@@ -69,9 +69,11 @@ export async function loadProjectFile(): Promise<AnimationProject> {
  */
 export async function loadMcpCheckpoint(): Promise<{
   scene: ExcalidrawSceneData;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   timeline: any;
   clipStart: number;
   clipEnd: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   cameraFrame: any;
 }> {
   const file = await fileOpen({

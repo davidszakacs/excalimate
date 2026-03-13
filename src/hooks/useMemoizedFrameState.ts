@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs */
 import { useRef } from 'react';
 import type { FrameState, ElementAnimationState } from '../types/animation';
 

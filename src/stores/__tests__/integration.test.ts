@@ -59,6 +59,7 @@ describe('Store Integration', () => {
   it('project store creates project with scene data', () => {
     const pStore = useProjectStore.getState();
     pStore.createNewProject('Test Anim', {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       elements: [{ id: 'el1', type: 'rectangle', x: 0, y: 0, width: 100, height: 100, isDeleted: false } as any],
       appState: {},
       files: {},

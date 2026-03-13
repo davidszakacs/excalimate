@@ -36,6 +36,7 @@ export const useUndoRedoStore = create<UndoRedoState>()((set, get) => ({
 
     // Deep clone the timeline so undo restores a distinct object reference
     const currentTimeline = JSON.parse(JSON.stringify(useAnimationStore.getState().timeline));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const currentTime = (globalThis as any).__playbackCurrentTime ?? 0;
     set((state) => {
       const newPast = [...state.past, { timeline: currentTimeline, time: currentTime }];
@@ -55,6 +56,7 @@ export const useUndoRedoStore = create<UndoRedoState>()((set, get) => ({
     if (past.length === 0) return null;
 
     const currentTimeline = JSON.parse(JSON.stringify(useAnimationStore.getState().timeline));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const currentTime = (globalThis as any).__playbackCurrentTime ?? 0;
     const prev = past[past.length - 1];
     const newPast = past.slice(0, -1);
@@ -76,6 +78,7 @@ export const useUndoRedoStore = create<UndoRedoState>()((set, get) => ({
     if (future.length === 0) return null;
 
     const currentTimeline = JSON.parse(JSON.stringify(useAnimationStore.getState().timeline));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const currentTime = (globalThis as any).__playbackCurrentTime ?? 0;
     const next = future[0];
     const newFuture = future.slice(1);

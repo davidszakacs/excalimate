@@ -1,4 +1,4 @@
-import { useCallback, useRef, useMemo } from 'react';
+import { useCallback, useRef, useMemo, useEffect } from 'react';
 import { Excalidraw, exportToSvg } from '@excalidraw/excalidraw';
 import type { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types';
 import type {
@@ -26,6 +26,7 @@ function computeBounds(
   element: NonDeletedExcalidrawElement,
   elementById?: Map<string, NonDeletedExcalidrawElement>,
 ): Bounds {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const elAny = element as any;
 
   // For bound text elements, compute position from the container's geometry
@@ -33,6 +34,7 @@ function computeBounds(
   if (element.type === 'text' && elAny.containerId && elementById) {
     const container = elementById.get(elAny.containerId);
     if (container) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const containerAny = container as any;
       // Get the container's visual center
       let cx: number, cy: number;
@@ -136,6 +138,7 @@ function elementExtent(el: {
   height: number;
   points?: number[][];
 }): [number, number, number, number] {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const elAny = el as any;
   if (elAny.points && Array.isArray(elAny.points) && elAny.points.length > 0) {
     let minX = Infinity,
@@ -171,6 +174,7 @@ function elementExtent(el: {
  * Each element has exactly ONE parentGroupId (its immediate container).
  * Groups reference their direct children, not deeply nested elements.
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function extractTargets(elements: readonly ExcalidrawElement[]): AnimatableTarget[] {
   const targets: AnimatableTarget[] = [];
 
@@ -240,6 +244,7 @@ export function extractTargets(elements: readonly ExcalidrawElement[]): Animatab
     }
 
     // Compute rawOrigin with points extent for linear elements
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const elAny = element as any;
     const rawOrigin: NonNullable<AnimatableTarget['rawOrigin']> = {
       x: element.x,
@@ -353,14 +358,15 @@ export function ExcalidrawEditor({
   const onElementsSelectedRef = useRef(onElementsSelected);
 
   // Keep refs in sync without causing re-renders
-  onSceneChangeRef.current = onSceneChange;
-  onElementsSelectedRef.current = onElementsSelected;
+  useEffect(() => { onSceneChangeRef.current = onSceneChange; }, [onSceneChange]);
+  useEffect(() => { onElementsSelectedRef.current = onElementsSelected; }, [onElementsSelected]);
 
   const handleApiReady = useCallback((api: ExcalidrawImperativeAPI) => {
     apiRef.current = api;
   }, []);
 
   const handleChange = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (elements: readonly ExcalidrawElement[], appState: any, _files: any) => {
       if (!apiRef.current) return;
 
@@ -419,6 +425,7 @@ export function ExcalidrawEditor({
  * Export the current Excalidraw scene to SVG.
  * Used by the SpriteManager to pre-render elements.
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export async function exportSceneToSvg(scene: ExcalidrawSceneData): Promise<SVGSVGElement> {
   const elements = scene.elements.filter((el) => !el.isDeleted) as NonDeletedExcalidrawElement[];
   const svg = await exportToSvg({
