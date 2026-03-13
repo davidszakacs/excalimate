@@ -1,7 +1,8 @@
 {
   "name": "animate-excalidraw",
-  "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "license": "MIT",
+  "description": "Create keyframe animations from Excalidraw designs — with an MCP server for AI-driven animation",
   "type": "module",
   "scripts": {
     "dev": "vite",

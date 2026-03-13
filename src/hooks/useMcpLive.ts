@@ -10,7 +10,7 @@ import { useUIStore } from '../stores/uiStore';
 import { extractTargets } from '../components/Canvas/ExcalidrawEditor';
 import { computeFrameAtTime } from '../core/engine/playbackSingleton';
 
-const DEFAULT_URL = 'http://localhost:3001';
+const DEFAULT_URL = import.meta.env.VITE_MCP_SERVER_URL ?? 'http://localhost:3001';
 
 export function useMcpLive() {
   const [connected, setConnected] = useState(false);
@@ -26,7 +26,7 @@ export function useMcpLive() {
 
     es.onopen = () => {
       setConnected(true);
-      console.log('[MCP Live] Connected to', url);
+      if (import.meta.env.DEV) console.log('[MCP Live] Connected to', url);
 
       // Fetch initial state
       fetch(`${url}/state`)
@@ -62,7 +62,7 @@ export function useMcpLive() {
     eventSourceRef.current?.close();
     eventSourceRef.current = null;
     setConnected(false);
-    console.log('[MCP Live] Disconnected');
+    if (import.meta.env.DEV) console.log('[MCP Live] Disconnected');
   }, []);
 
   // Cleanup on unmount

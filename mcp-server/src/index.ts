@@ -13,6 +13,8 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import cors from 'cors';
 import crypto from 'node:crypto';
 import express from 'express';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import type { Request, Response } from 'express';
 import { FileCheckpointStore } from './checkpoint-store.js';
 import { createServer, getSharedState } from './server.js';
@@ -24,7 +26,27 @@ async function startStdioServer(factory: () => McpServer): Promise<void> {
 async function startHTTPServer(factoryWithSSE: (sseClients: Set<Response>) => McpServer): Promise<void> {
   const port = parseInt(process.env.PORT ?? '3001', 10);
   const app = express();
-  app.use(cors());
+  app.use(helmet({ contentSecurityPolicy: false })); // Security headers
+  app.use(cors({
+    origin: process.env.CORS_ORIGIN ?? '*',
+  }));
+
+  // Rate limiting
+  const limiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    max: 200, // 200 requests per minute
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+  app.use(limiter);
+
+  // Stricter rate limit for share uploads
+  const shareLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 10, // 10 shares per minute
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
 
   // Parse JSON only for non-share routes (share uses raw binary)
   app.use((req, res, next) => {
@@ -126,7 +148,7 @@ async function startHTTPServer(factoryWithSSE: (sseClients: Set<Response>) => Mc
   const MAX_SHARES = 500;
 
   // Upload encrypted blob
-  app.post('/share', express.raw({ type: 'application/octet-stream', limit: '10mb' }), (req: Request, res: Response) => {
+  app.post('/share', shareLimiter, express.raw({ type: 'application/octet-stream', limit: '10mb' }), (req: Request, res: Response) => {
     const id = crypto.randomUUID().replace(/-/g, '').slice(0, 16);
     const body = req.body as Buffer | undefined;
     if (!body || body.length === 0) {

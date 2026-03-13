@@ -171,7 +171,7 @@ export function FileControls() {
       const keyStr = await exportKeyToString(key);
 
       // Upload encrypted blob to server
-      const serverUrl = 'http://localhost:3001';
+      const serverUrl = import.meta.env.VITE_MCP_SERVER_URL ?? 'http://localhost:3001';
       const response = await fetch(`${serverUrl}/share`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/octet-stream' },

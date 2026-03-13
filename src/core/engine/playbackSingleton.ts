@@ -1,11 +1,6 @@
 /**
  * Singleton PlaybackController accessible app-wide.
  * Created lazily on first access.
- *
- * Group transforms are NOT composed in the engine. Instead, the
- * AnimationPreview wraps group members in SVG <g> elements and applies
- * per-target CSS transforms. The browser's native CSS cascade handles
- * parent→child composition (translate adds, scale multiplies, etc.).
  */
 
 import { PlaybackController } from './PlaybackController';

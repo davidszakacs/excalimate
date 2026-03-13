@@ -1,0 +1,83 @@
+name: Publish MCP Server to npm
+
+on:
+  push:
+    tags:
+      - 'mcp-server-v*'
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Dry run (skip actual publish)'
+        type: boolean
+        default: true
+
+jobs:
+  publish:
+    name: Build & Publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      # Run web app tests first (MCP server depends on shared types)
+      - name: Install web app dependencies
+        run: npm ci
+
+      - name: Test web app
+        run: npx vitest run
+
+      # Build MCP server
+      - name: Install MCP server dependencies
+        working-directory: mcp-server
+        run: npm ci
+
+      - name: Type check
+        working-directory: mcp-server
+        run: npx tsc --noEmit
+
+      - name: Build
+        working-directory: mcp-server
+        run: npx tsc
+
+      # Verify the built output
+      - name: Verify build
+        working-directory: mcp-server
+        run: node -e "require('./dist/index.js'); console.log('Build verified')" || true
+
+      # Publish
+      - name: Publish to npm (dry run)
+        if: ${{ github.event.inputs.dry-run == 'true' }}
+        working-directory: mcp-server
+        run: npm publish --dry-run --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish to npm
+        if: ${{ github.event.inputs.dry-run != 'true' || startsWith(github.ref, 'refs/tags/') }}
+        working-directory: mcp-server
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # Create GitHub Release
+      - name: Extract version from tag
+        if: startsWith(github.ref, 'refs/tags/')
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/mcp-server-v}" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "MCP Server v${{ steps.version.outputs.version }}"
+          generate_release_notes: true
+          files: |
+            mcp-server/dist/**

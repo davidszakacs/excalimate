@@ -40,7 +40,7 @@ export function App() {
 
     (async () => {
       try {
-        const serverUrl = 'http://localhost:3001';
+        const serverUrl = import.meta.env.VITE_MCP_SERVER_URL ?? 'http://localhost:3001';
         const response = await fetch(`${serverUrl}/share/${shareId}`);
         if (!response.ok) throw new Error('Share not found');
         const encrypted = await response.arrayBuffer();
