@@ -24,19 +24,24 @@ export function useMcpLive() {
     const es = new EventSource(`${url}/live`);
     eventSourceRef.current = es;
 
-    es.onopen = () => {
-      setConnected(true);
+    es.onopen = async () => {
       if (import.meta.env.DEV) console.log('[MCP Live] Connected to', url);
 
-      // Fetch initial state
-      fetch(`${url}/state`)
-        .then(r => r.json())
-        .then(state => {
-          if (state?.scene?.elements) {
-            applyState(state);
-          }
-        })
-        .catch(e => console.error('[MCP Live] Failed to fetch initial state:', e));
+      try {
+        const res = await fetch(`${url}/state`);
+        if (!res.ok) {
+          console.error('[MCP Live] Failed to fetch initial state:', res.statusText);
+          return;
+        }
+        const state = await res.json();
+        if (state?.scene?.elements) {
+          applyState(state);
+        }
+      } catch (e) {
+        console.error('[MCP Live] Failed to fetch initial state:', e);
+      }
+
+      setConnected(true);
     };
 
     es.onmessage = (event) => {
@@ -77,15 +82,6 @@ export function useMcpLive() {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function applyState(state: any) {
-  if (import.meta.env.DEV) {
-    console.debug('[MCP Live] applyState', {
-      hasElements: !!state.scene?.elements,
-      elementCount: state.scene?.elements?.length,
-      hasTimeline: !!state.timeline,
-      trackCount: state.timeline?.tracks?.length,
-    });
-  }
-
   // Update scene
   if (state.scene?.elements) {
     // Force element opacity to 100 — animation controls visibility via keyframes

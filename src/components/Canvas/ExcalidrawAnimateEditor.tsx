@@ -61,12 +61,43 @@ export function ExcalidrawAnimateEditor({
   onResizeElement,
 }: ExcalidrawAnimateEditorProps) {
   const apiRef = useRef<ExcalidrawImperativeAPI | null>(null);
-  const updateCountRef = useRef(0); // Counter to ignore our own onChange callbacks
+  // Flag to ignore onChange callbacks triggered by our own updateScene calls.
+  // Using a boolean + timestamp instead of a counter because Excalidraw may
+  // fire onChange a variable number of times per updateScene call.
+  const ignoreChangesUntilRef = useRef(0);
   const lastAnimatedRef = useRef<Map<string, { x: number; y: number; width: number; height: number }>>(new Map());
   const lastElementOrderRef = useRef<string>(''); // Track z-order changes
   const [ready, setReady] = useState(false);
   const [viewport, setViewport] = useState({ scrollX: 0, scrollY: 0, zoom: 1, width: 0, height: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
+  // Track whether we've done the initial render (skip first updateScene since
+  // initialData already rendered elements correctly on the canvas).
+  const initialRenderDoneRef = useRef(false);
+
+  // Compute a key from the set of element IDs.  When elements are
+  // added/removed (MCP structural change), the key changes and the inner
+  // Excalidraw component remounts with fresh initialData — this is the
+  // only reliable way to make Excalidraw v0.18 render a new scene.
+  // During animation playback (same IDs, different properties) the key
+  // stays the same so api.updateScene() handles property changes cheaply.
+  const sceneKey = scene
+    ? scene.elements
+        .filter((el: { isDeleted?: boolean }) => !el.isDeleted)
+        .map((el: { id: string }) => el.id)
+        .join(',')
+    : 'empty';
+
+  // Reset ready state when the Excalidraw component remounts (key changed)
+  const prevKeyRef = useRef(sceneKey);
+  if (sceneKey !== prevKeyRef.current) {
+    prevKeyRef.current = sceneKey;
+    apiRef.current = null;
+    lastElementOrderRef.current = '';
+    ignoreChangesUntilRef.current = 0;
+    initialRenderDoneRef.current = false;
+    // Ready will be set back to true by handleApiReady after remount
+    if (ready) setReady(false);
+  }
 
   // Stable callback refs
   const onSelectRef = useRef(onSelectElements);
@@ -88,16 +119,29 @@ export function ExcalidrawAnimateEditor({
 
   const handleApiReady = useCallback((api: ExcalidrawImperativeAPI) => {
     apiRef.current = api;
+
+    // After Excalidraw mounts and processes initialData, read back the
+    // normalized elements. Excalidraw adds internal properties (index,
+    // frameId, etc.) that are required for api.updateScene() to work
+    // correctly for canvas rendering. Without this, elements from
+    // external sources (e.g. MCP server) that lack these properties
+    // will be accepted by updateScene() but not painted on the canvas.
+    const normalizedElements = api.getSceneElements();
+    if (normalizedElements.length > 0) {
+      const currentScene = sceneRef.current;
+      if (currentScene) {
+        useProjectStore.getState().updateScene({
+          ...currentScene,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          elements: [...normalizedElements] as any,
+        });
+      }
+    }
+
     setReady(true);
   }, []);
 
   // ── Apply animation to Excalidraw scene ────────────────────────
-  // The dependency array triggers re-runs when any input changes.
-  // Inside the effect we read frameState and targets from the stores
-  // directly (not the closure) so that when MCP live pushes scene +
-  // timeline + targets in quick succession, each intermediate render
-  // already sees the fully-consistent latest values.
-
   useEffect(() => {
     if (!ready || !apiRef.current || !scene) return;
 
@@ -108,15 +152,37 @@ export function ExcalidrawAnimateEditor({
 
     if (elements.length === 0) return;
 
-    // Read latest values directly from stores to avoid stale closures
-    // during intermediate renders when multiple stores update in sequence.
+    // Skip the very first call — initialData already rendered the elements
+    // on the canvas. Calling api.updateScene() immediately after mount
+    // breaks Excalidraw's canvas rendering in v0.18.
+    if (!initialRenderDoneRef.current) {
+      initialRenderDoneRef.current = true;
+      // Still set up tracking refs
+      const posMap = new Map<string, { x: number; y: number; width: number; height: number }>();
+      for (const el of elements) {
+        posMap.set(el.id, { x: el.x, y: el.y, width: el.width, height: el.height });
+      }
+      lastAnimatedRef.current = posMap;
+      lastElementOrderRef.current = elements.map(el => el.id).join(',');
+      return;
+    }
+
     const latestFrameState = usePlaybackStore.getState().frameState;
     const latestTargets = useProjectStore.getState().targets;
 
-    // Apply animation transforms to element clones
     let animated = applyAnimationToElements(elements, latestFrameState, latestTargets);
 
-    // Ghost mode: ensure hidden elements stay visible at minimum opacity
+    // Clamp minimum opacity to 1 (out of 100) for the canvas preview.
+    animated = animated.map(el => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const opacity = (el as any).opacity ?? 100;
+      if (opacity < 1) {
+        return { ...el, opacity: 1 } as typeof el;
+      }
+      return el;
+    });
+
+    // Ghost mode: make hidden elements more visible for authoring
     const ghostMode = useUIStore.getState().ghostMode;
     if (ghostMode) {
       animated = animated.map(el => {
@@ -129,43 +195,37 @@ export function ExcalidrawAnimateEditor({
       });
     }
 
-    // Track animated positions for delta computation on user edit
     const posMap = new Map<string, { x: number; y: number; width: number; height: number }>();
     for (const el of animated) {
       posMap.set(el.id, { x: el.x, y: el.y, width: el.width, height: el.height });
     }
     lastAnimatedRef.current = posMap;
-
-    // Keep element order tracking in sync with the current scene so that
-    // external scene changes (e.g. MCP live updates adding new elements)
-    // don't trigger false z-order change detection in handleChange.
     lastElementOrderRef.current = elements.map(el => el.id).join(',');
 
-    // Update Excalidraw's scene with animated elements
-    updateCountRef.current++;
+    ignoreChangesUntilRef.current = Date.now() + 100;
     api.updateScene({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       elements: animated as any,
     });
   }, [ready, scene, frameState, targets]);
 
+
   // Re-apply when ghost mode toggles
   useEffect(() => {
     return useUIStore.subscribe((s, prev) => {
       if (s.ghostMode !== prev.ghostMode && apiRef.current && sceneRef.current) {
-        // Trigger re-render by bumping a dependency — just call the animation update
         const api = apiRef.current;
         const sc = sceneRef.current;
         const elements = getNonDeletedElements(sc.elements as ExcalidrawElement[]) as NonDeletedExcalidrawElement[];
         let animated = applyAnimationToElements(elements, frameStateRef.current, targetsRef.current);
-        if (s.ghostMode) {
-          animated = animated.map(el => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const opacity = (el as any).opacity ?? 100;
-            return opacity < 15 ? { ...el, opacity: 15 } as typeof el : el;
-          });
-        }
-        updateCountRef.current++;
+        // Always clamp min opacity (see main useEffect comment for why)
+        const minOpacity = s.ghostMode ? 15 : 1;
+        animated = animated.map(el => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const opacity = (el as any).opacity ?? 100;
+          return opacity < minOpacity ? { ...el, opacity: minOpacity } as typeof el : el;
+        });
+        ignoreChangesUntilRef.current = Date.now() + 100;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         api.updateScene({ elements: animated as any });
       }
@@ -188,7 +248,7 @@ export function ExcalidrawAnimateEditor({
       currentSelected.every(id => selectedElementIds.includes(id));
 
     if (!same) {
-      updateCountRef.current++;
+      ignoreChangesUntilRef.current = Date.now() + 100;
       const selectedMap: Record<string, boolean> = {};
       for (const id of selectedElementIds) selectedMap[id] = true;
       api.updateScene({
@@ -214,8 +274,11 @@ export function ExcalidrawAnimateEditor({
         });
       }
 
-      // Ignore changes triggered by our own updateScene calls
-      if (updateCountRef.current > 0) { updateCountRef.current--; return; }
+      // Ignore changes triggered by our own updateScene calls.
+      // Uses a timestamp window instead of a counter because Excalidraw
+      // may fire onChange a variable number of times per updateScene call.
+      const now = Date.now();
+      if (now < ignoreChangesUntilRef.current) return;
       if (!apiRef.current) return;
 
       // Report selection changes
@@ -226,35 +289,45 @@ export function ExcalidrawAnimateEditor({
         onSelectRef.current(selectedIds);
       }
 
-      // Detect z-order changes (send to front/back) and update the source scene
+      // Detect z-order changes (send to front/back) and update the source scene.
+      // Skip on first onChange (lastElementOrderRef is still empty) — that is the
+      // initial render from initialData and must not trigger a store update.
       const nonDeleted = elements.filter(el => !el.isDeleted);
       const currentOrder = nonDeleted.map(el => el.id).join(',');
-      if (currentOrder !== lastElementOrderRef.current) {
+      if (!lastElementOrderRef.current) {
+        // First onChange after mount — just initialize, don't process
         lastElementOrderRef.current = currentOrder;
-        const currentScene = sceneRef.current;
-        if (currentScene) {
-          // Restore original element properties (opacity, position, etc.) from the base scene
-          // because Excalidraw's elements have animated values baked in
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const origMap = new Map<string, any>();
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          for (const el of currentScene.elements as any[]) origMap.set(el.id, el);
-
-          const restoredElements = nonDeleted.map(el => {
-            const orig = origMap.get(el.id);
-            if (orig) return { ...orig }; // Use original properties, just adopt new array order
-            return el; // New element, keep as-is
-          });
-
-          const reorderedScene = {
-            ...currentScene,
+      } else if (currentOrder !== lastElementOrderRef.current) {
+        // Only process if element count is the same (genuine reorder, not a
+        // framework artifact like an empty onChange during updateScene transitions).
+        const prevIds = lastElementOrderRef.current.split(',');
+        lastElementOrderRef.current = currentOrder;
+        if (nonDeleted.length > 0 && nonDeleted.length === prevIds.length) {
+          const currentScene = sceneRef.current;
+          if (currentScene) {
+            // Restore original element properties (opacity, position, etc.) from the base scene
+            // because Excalidraw's elements have animated values baked in
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            elements: restoredElements as any,
-          };
-          useProjectStore.getState().updateScene(reorderedScene);
+            const origMap = new Map<string, any>();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            for (const el of currentScene.elements as any[]) origMap.set(el.id, el);
+
+            const restoredElements = nonDeleted.map(el => {
+              const orig = origMap.get(el.id);
+              if (orig) return { ...orig }; // Use original properties, just adopt new array order
+              return el; // New element, keep as-is
+            });
+
+            const reorderedScene = {
+              ...currentScene,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              elements: restoredElements as any,
+            };
+            useProjectStore.getState().updateScene(reorderedScene);
+          }
+          const newTargets = extractTargets(nonDeleted);
+          useProjectStore.getState().setTargets(newTargets);
         }
-        const newTargets = extractTargets(nonDeleted);
-        useProjectStore.getState().setTargets(newTargets);
       }
 
       // Detect user edits: compare current element positions with last animated positions
@@ -356,16 +429,24 @@ export function ExcalidrawAnimateEditor({
   }, [viewport]);
 
   // ── Compute initial data ───────────────────────────────────────
+  // IMPORTANT: Pass raw scene elements (not animation-transformed) as initialData.
+  // Animation transforms are applied via api.updateScene() in the useEffect.
+  // If we pass animated elements here (e.g. opacity 0 at time 0), Excalidraw
+  // may re-apply initialData on internal re-renders, overriding the
+  // api.updateScene() call that set opacity to the correct animated value.
 
   const initialData = scene
     ? {
-        elements: applyAnimationToElements(
-          getNonDeletedElements(scene.elements as ExcalidrawElement[]) as NonDeletedExcalidrawElement[],
-          frameState,
-          targets,
-        ) as ExcalidrawElement[],
+        elements: getNonDeletedElements(scene.elements as ExcalidrawElement[]),
         appState: {
           ...scene.appState,
+          // Preserve the user's viewport across Excalidraw remounts
+          ...(viewport.width > 0 ? {
+            scrollX: viewport.scrollX,
+            scrollY: viewport.scrollY,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            zoom: { value: viewport.zoom } as any,
+          } : {}),
           selectedElementIds: Object.fromEntries(selectedElementIds.map(id => [id, true as const])),
         },
         files: scene.files,
@@ -408,6 +489,7 @@ export function ExcalidrawAnimateEditor({
   return (
     <div ref={containerRef} className="excalidraw-wrapper" style={{ width: '100%', height: '100%', position: 'relative' }}>
       <Excalidraw
+        key={sceneKey}
         excalidrawAPI={handleApiReady}
         initialData={initialData}
         onChange={handleChange}
