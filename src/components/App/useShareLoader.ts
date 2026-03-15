@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { extractTargets } from '../Canvas/ExcalidrawEditor';
+import { extractTargets } from '../Canvas/extractTargets';
 import { computeFrameAtTime } from '../../core/engine/playbackSingleton';
 import { useAnimationStore } from '../../stores/animationStore';
 import { useProjectStore } from '../../stores/projectStore';

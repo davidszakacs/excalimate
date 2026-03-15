@@ -10,7 +10,7 @@ import { useAnimationStore } from '../stores/animationStore';
 import { usePlaybackStore } from '../stores/playbackStore';
 import { useProjectStore } from '../stores/projectStore';
 import { useUIStore } from '../stores/uiStore';
-import { extractTargets } from '../components/Canvas/ExcalidrawEditor';
+import { extractTargets } from '../components/Canvas/extractTargets';
 import { computeFrameAtTime } from '../core/engine/playbackSingleton';
 
 const DEFAULT_URL = import.meta.env.VITE_MCP_SERVER_URL ?? 'http://localhost:3001';

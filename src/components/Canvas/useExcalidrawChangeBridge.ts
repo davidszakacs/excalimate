@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import type { ExcalidrawElement } from '@excalidraw/excalidraw/element/types';
 import { useProjectStore } from '../../stores/projectStore';
-import { extractTargets } from './ExcalidrawEditor';
+import { extractTargets } from './extractTargets';
 import type { AnimateEditorRefs } from './ExcalidrawAnimateEditor';
 
 export function useExcalidrawChangeBridge(params: {

@@ -15,7 +15,7 @@ import {
   encryptData,
   exportKeyToString,
 } from '../../services/encryption';
-import { extractTargets } from '../Canvas/ExcalidrawEditor';
+import { extractTargets } from '../Canvas/extractTargets';
 
 function resetTimeline() {
   useAnimationStore.getState().setTimeline({
