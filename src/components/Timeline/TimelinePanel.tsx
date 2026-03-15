@@ -1,6 +1,9 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState, type MouseEvent } from 'react';
+import { ActionIcon } from '@mantine/core';
+import { IconKeyframeFilled, IconX, IconVolume, IconVolumeOff, IconChevronRight, IconChevronDown } from '@tabler/icons-react';
 import type { AnimationTrack, Keyframe } from '../../types/animation';
 import { KeyframeDiamond } from './KeyframeDiamond';
+import { PlaybackControls } from '../Toolbar/PlaybackControls';
 import { TimeRuler } from './TimeRuler';
 import { timeToPixel } from './timelineMath';
 import {
@@ -138,10 +141,10 @@ export function TimelinePanel({
     <div className="flex flex-col h-full select-none">
       <div className="flex" style={{ height: HEADER_HEIGHT }}>
         <div
-          className="shrink-0 flex items-center px-2 text-[10px] font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider border-b border-r border-[var(--color-border)] bg-[#1a1a2a]"
+          className="shrink-0 flex items-center px-2 text-[10px] font-semibold text-text-muted uppercase tracking-wider border-b border-r border-border bg-surface-alt"
           style={{ width: TRACK_LIST_WIDTH }}
         >
-          Tracks
+          <PlaybackControls />
         </div>
         <div className="flex-1 overflow-hidden" ref={keyframeAreaRef} onMouseDown={handleScrubberMouseDown} aria-label="Timeline scrubber">
           <TimeRuler duration={duration} zoom={zoom} scrollX={scrollX} width={rulerWidth} />
@@ -151,7 +154,7 @@ export function TimelinePanel({
       <div className="flex flex-1 overflow-hidden">
         <div
           ref={trackListRef}
-          className="shrink-0 overflow-y-auto border-r border-[var(--color-border)]"
+          className="shrink-0 overflow-y-auto border-r border-border"
           style={{ width: TRACK_LIST_WIDTH }}
           onScroll={() => syncScroll('left')}
         >
@@ -162,33 +165,37 @@ export function TimelinePanel({
               return (
                 <div
                   key={`hdr-${group.targetId}`}
-                  className={`flex items-center h-7 px-1 gap-1 cursor-pointer border-b border-[var(--color-border)] text-xs select-none
-                    ${isAnySelected ? 'bg-indigo-500/10 text-indigo-300' : 'hover:bg-[var(--color-surface)] text-[var(--color-text)]'}
+                  className={`flex items-center h-7 px-1 gap-1 cursor-pointer border-b border-border text-xs select-none
+                    ${isAnySelected ? 'bg-accent-muted text-accent' : 'hover:bg-surface text-text'}
                     ${group.allTracks.some((t) => !t.enabled) ? 'opacity-40' : ''}`}
                   onClick={() => toggleCollapse(group.targetId)}
                 >
-                  <span className="shrink-0 text-[10px] w-3 text-center text-[var(--color-text-secondary)]">{collapsed ? '▸' : '▾'}</span>
+                  <span className="shrink-0 text-[10px] w-3 text-center text-text-muted">{collapsed ? <IconChevronRight size={12} /> : <IconChevronDown size={12} />}</span>
                   <span className="truncate flex-1 font-medium">{group.label}</span>
-                  <button
-                    className="shrink-0 text-[10px] hover:text-indigo-400"
-                    onClick={(e) => {
+                  <ActionIcon
+                    variant="subtle"
+                    color="indigo"
+                    size="xs"
+                    onClick={(e: MouseEvent) => {
                       e.stopPropagation();
                       group.allTracks.forEach((t) => onAddKeyframe(t.id, Math.round(currentTime), 0));
                     }}
                     title="Add keyframe for all properties"
                   >
-                    ◆+
-                  </button>
-                  <button
-                    className="shrink-0 text-[10px] hover:text-red-400"
-                    onClick={(e) => {
+                    <IconKeyframeFilled size={14} />
+                  </ActionIcon>
+                  <ActionIcon
+                    variant="subtle"
+                    color="red"
+                    size="xs"
+                    onClick={(e: MouseEvent) => {
                       e.stopPropagation();
                       group.allTracks.forEach((t) => onRemoveTrack(t.id));
                     }}
                     title="Remove all tracks"
                   >
-                    ✕
-                  </button>
+                    <IconX size={14} />
+                  </ActionIcon>
                 </div>
               );
             }
@@ -197,48 +204,54 @@ export function TimelinePanel({
             return (
               <div
                 key={vt.id}
-                className={`flex items-center h-7 pl-5 pr-2 gap-1 cursor-pointer border-b border-[var(--color-border)] text-xs select-none
-                  ${isSelected ? 'bg-indigo-500/10 text-indigo-300' : 'hover:bg-[var(--color-surface)] text-[var(--color-text-secondary)]'}
+                className={`flex items-center h-7 pl-5 pr-2 gap-1 cursor-pointer border-b border-border text-xs select-none
+                  ${isSelected ? 'bg-accent-muted text-accent' : 'hover:bg-surface text-text-muted'}
                   ${vt.tracks.some((t) => !t.enabled) ? 'opacity-40' : ''}`}
                 onClick={() => onSelectTrack(vt.tracks[0].id)}
               >
                 <span className="shrink-0">{vt.icon}</span>
                 <span className="truncate flex-1">{vt.label}</span>
-                <button
-                  className="shrink-0 text-[10px] hover:text-indigo-400"
-                  onClick={(e) => {
+                <ActionIcon
+                  variant="subtle"
+                  color="indigo"
+                  size="xs"
+                  onClick={(e: MouseEvent) => {
                     e.stopPropagation();
                     vt.tracks.forEach((t) => onAddKeyframe(t.id, Math.round(currentTime), 0));
                   }}
                   title="Add keyframe"
                 >
-                  ◆+
-                </button>
-                <button
-                  className="shrink-0 text-[10px] hover:text-yellow-400"
-                  onClick={(e) => {
+                  <IconKeyframeFilled size={14} />
+                </ActionIcon>
+                <ActionIcon
+                  variant="subtle"
+                  color="yellow"
+                  size="xs"
+                  onClick={(e: MouseEvent) => {
                     e.stopPropagation();
                     vt.tracks.forEach((t) => onToggleTrackEnabled(t.id));
                   }}
                   title="Mute"
                 >
-                  {vt.tracks[0].enabled ? '●' : '○'}
-                </button>
-                <button
-                  className="shrink-0 text-[10px] hover:text-red-400"
-                  onClick={(e) => {
+                  {vt.tracks[0].enabled ? <IconVolume size={14} /> : <IconVolumeOff size={14} />}
+                </ActionIcon>
+                <ActionIcon
+                  variant="subtle"
+                  color="red"
+                  size="xs"
+                  onClick={(e: MouseEvent) => {
                     e.stopPropagation();
                     vt.tracks.forEach((t) => onRemoveTrack(t.id));
                   }}
                   title="Remove"
                 >
-                  ✕
-                </button>
+                  <IconX size={14} />
+                </ActionIcon>
               </div>
             );
           })}
           {targetGroups.length === 0 && (
-            <div className="p-3 text-xs text-[var(--color-text-secondary)] text-center">
+            <div className="p-3 text-xs text-text-muted text-center">
               <p className="mb-2">No animation tracks yet.</p>
               <p className="text-[10px] opacity-70">Select an element and change a property value to start animating.</p>
             </div>
@@ -259,7 +272,7 @@ export function TimelinePanel({
                 left: 0,
                 width: `${clipStartX}px`,
                 height: `max(100%, ${rows.length * TRACK_HEIGHT}px)`,
-                backgroundColor: 'rgba(0,0,0,0.15)',
+                backgroundColor: 'var(--color-overlay)',
                 zIndex: 5,
               }}
             />
@@ -270,7 +283,7 @@ export function TimelinePanel({
               left: `${clipEndX}px`,
               width: '100vw',
               height: `max(100%, ${rows.length * TRACK_HEIGHT}px)`,
-              backgroundColor: 'rgba(0,0,0,0.15)',
+              backgroundColor: 'var(--color-overlay)',
               zIndex: 5,
             }}
           />
@@ -280,8 +293,8 @@ export function TimelinePanel({
             style={{ left: `${Math.max(0, clipStartX - 4)}px`, width: '8px', height: `max(100%, ${rows.length * TRACK_HEIGHT}px)` }}
             onMouseDown={(e) => handleClipMarkerDrag('start', e)}
           >
-            <div className="absolute top-0 left-[3px] w-[2px] h-full" style={{ backgroundColor: '#a855f7' }} />
-            <div className="absolute top-0 left-0 w-2 h-4 rounded-b-sm" style={{ backgroundColor: '#a855f7' }} />
+            <div className="absolute top-0 left-[3px] w-[2px] h-full" style={{ backgroundColor: 'var(--color-clip-marker)' }} />
+            <div className="absolute top-0 left-0 w-2 h-4 rounded-b-sm" style={{ backgroundColor: 'var(--color-clip-marker)' }} />
           </div>
 
           <div
@@ -289,16 +302,16 @@ export function TimelinePanel({
             style={{ left: `${clipEndX - 4}px`, width: '8px', height: `max(100%, ${rows.length * TRACK_HEIGHT}px)` }}
             onMouseDown={(e) => handleClipMarkerDrag('end', e)}
           >
-            <div className="absolute top-0 left-[3px] w-[2px] h-full" style={{ backgroundColor: '#a855f7' }} />
-            <div className="absolute top-0 left-0 w-2 h-4 rounded-b-sm" style={{ backgroundColor: '#a855f7' }} />
+            <div className="absolute top-0 left-[3px] w-[2px] h-full" style={{ backgroundColor: 'var(--color-clip-marker)' }} />
+            <div className="absolute top-0 left-0 w-2 h-4 rounded-b-sm" style={{ backgroundColor: 'var(--color-clip-marker)' }} />
           </div>
 
           {playheadX >= 0 && (
             <div
-              className="absolute top-0 w-px bg-red-500 z-10 pointer-events-none"
+              className="absolute top-0 w-px bg-playhead z-10 pointer-events-none"
               style={{ left: `${playheadX}px`, height: `max(100%, ${rows.length * TRACK_HEIGHT}px)` }}
             >
-              <div className="absolute -top-0.5 -translate-x-1/2 w-2 h-2 bg-red-500 rotate-45" />
+              <div className="absolute -top-0.5 -translate-x-1/2 w-2 h-2 bg-playhead rotate-45" />
             </div>
           )}
 
@@ -314,7 +327,7 @@ export function TimelinePanel({
                 }
               }
               return (
-                <div key={`hdr-${group.targetId}`} className="relative border-b border-[var(--color-border)] bg-white/[0.01]" style={{ height: TRACK_HEIGHT }}>
+                <div key={`hdr-${group.targetId}`} className="relative border-b border-border bg-surface/[0.01]" style={{ height: TRACK_HEIGHT }}>
                   {collapsed &&
                     allKfs.map(({ kf, trackId }) => {
                       const x = timeToPixel(kf.time, zoom) - scrollX;
@@ -348,7 +361,7 @@ export function TimelinePanel({
               <div
                 key={vt.id}
                 role="row"
-                className={`relative border-b border-[var(--color-border)] ${isSelected ? 'bg-indigo-500/5' : 'hover:bg-white/[0.02]'}`}
+                className={`relative border-b border-border ${isSelected ? 'bg-accent/5' : 'hover:bg-surface/[0.02]'}`}
                 style={{ height: TRACK_HEIGHT }}
                 onDoubleClick={(e) => handleKeyframeAreaClick(e, vt.tracks[0].id)}
               >
@@ -373,13 +386,13 @@ export function TimelinePanel({
           })}
 
           <div
-            className="absolute top-0 bottom-0 w-px bg-[var(--color-border)] opacity-50 pointer-events-none"
+            className="absolute top-0 bottom-0 w-px bg-border opacity-50 pointer-events-none"
             style={{ left: `${totalWidth - scrollX}px` }}
           />
         </div>
       </div>
 
-      <div className="flex items-center h-6 px-2 gap-2 border-t border-[var(--color-border)] bg-[#1a1a2a] text-[10px] text-[var(--color-text-secondary)]">
+      <div className="flex items-center h-6 px-2 gap-2 border-t border-border bg-surface-alt text-[10px] text-text-muted">
         <span>Zoom:</span>
         <input
           type="range"
@@ -388,14 +401,14 @@ export function TimelinePanel({
           step={0.01}
           value={zoom}
           onChange={(e) => setZoom(Number(e.target.value))}
-          className="w-20 h-1 accent-indigo-500"
+          className="w-20 h-1 accent-accent"
         />
         <span>{Math.round(zoom * 1000)}%</span>
         <div className="flex-1" />
         <span>
           Clip: {(clipStart / 1000).toFixed(1)}s – {(clipEnd / 1000).toFixed(1)}s ({((clipEnd - clipStart) / 1000).toFixed(1)}s)
         </span>
-        {dragState && <span className="text-yellow-400">Dragging...</span>}
+        {dragState && <span className="text-warning">Dragging...</span>}
       </div>
     </div>
   );

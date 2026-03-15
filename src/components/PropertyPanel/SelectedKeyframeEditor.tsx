@@ -1,3 +1,5 @@
+import { Button } from '@mantine/core';
+import { IconKeyframe, IconTrash } from '@tabler/icons-react';
 import type { AnimationTrack, Keyframe, EasingType } from '../../types/animation';
 import { NumberInput } from '../common/NumberInput';
 import { Dropdown } from '../common/Dropdown';
@@ -21,14 +23,14 @@ export function SelectedKeyframeEditor({
   const displayVal = toDisplay(track.property, keyframe.value);
 
   return (
-    <div className="px-3 py-2 border-b border-[var(--color-border)] space-y-2">
+    <div className="px-3 py-2 border-b border-border space-y-2">
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium flex items-center gap-1">
-          <span className="text-indigo-400">◆</span> {config.icon} {config.label}
+          <IconKeyframe size={12} className="text-accent" /> {config.icon} {config.label}
         </span>
-        <button className="text-[10px] text-red-400 hover:text-red-300" onClick={onDelete} title="Delete keyframe">
-          ✕ Delete
-        </button>
+        <Button variant="subtle" color="red" size="compact-xs" leftSection={<IconTrash size={12} />} onClick={onDelete}>
+          Delete
+        </Button>
       </div>
       <NumberInput label="Time" value={keyframe.time} onChange={(v) => onUpdate({ time: Math.max(0, v) })} min={0} step={10} suffix="ms" />
       <NumberInput

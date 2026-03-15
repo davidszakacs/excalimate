@@ -3,6 +3,7 @@ import { Excalidraw } from '@excalidraw/excalidraw';
 import type { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw/types';
 import type { ExcalidrawElement } from '@excalidraw/excalidraw/element/types';
 import type { ExcalidrawSceneData } from '../../types/excalidraw';
+import { useUIStore } from '../../stores/uiStore';
 import '@excalidraw/excalidraw/index.css';
 
 interface ExcalidrawEditorProps {
@@ -16,6 +17,7 @@ export function ExcalidrawEditor({
   onElementsSelected,
   initialData,
 }: ExcalidrawEditorProps) {
+  const theme = useUIStore((s) => s.theme);
   const apiRef = useRef<ExcalidrawImperativeAPI | null>(null);
   const onSceneChangeRef = useRef(onSceneChange);
   const onElementsSelectedRef = useRef(onElementsSelected);
@@ -78,7 +80,7 @@ export function ExcalidrawEditor({
         excalidrawAPI={handleApiReady}
         initialData={stableInitialData}
         onChange={handleChange}
-        theme="light"
+        theme={theme}
       />
     </div>
   );

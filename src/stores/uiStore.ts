@@ -5,9 +5,18 @@ import type {
   TimelineViewport,
 } from '../types/ui';
 
+export type Theme = 'light' | 'dark';
+
+function getInitialTheme(): Theme {
+  const stored = localStorage.getItem('excalimate-theme');
+  if (stored === 'light' || stored === 'dark') return stored;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
 interface UIState {
   // State
   mode: AppMode;
+  theme: Theme;
   selectedElementIds: string[];
   panelSizes: PanelSizes;
   timelineViewport: TimelineViewport;
@@ -17,6 +26,8 @@ interface UIState {
   // Actions
   setMode: (mode: AppMode) => void;
   toggleMode: () => void;
+  setTheme: (theme: Theme) => void;
+  toggleTheme: () => void;
   setSelectedElements: (ids: string[]) => void;
   clearSelection: () => void;
   setPanelSize: (panel: keyof PanelSizes, size: number) => void;
@@ -30,6 +41,7 @@ interface UIState {
 
 export const useUIStore = create<UIState>()((set) => ({
   mode: 'edit',
+  theme: getInitialTheme(),
   selectedElementIds: [],
   ghostMode: false,
   sequenceRevealOpen: false,
@@ -54,6 +66,19 @@ export const useUIStore = create<UIState>()((set) => ({
     set((state) => ({
       mode: state.mode === 'edit' ? 'animate' : 'edit',
     }));
+  },
+
+  setTheme: (theme: Theme): void => {
+    localStorage.setItem('excalimate-theme', theme);
+    set({ theme });
+  },
+
+  toggleTheme: (): void => {
+    set((state) => {
+      const next = state.theme === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('excalimate-theme', next);
+      return { theme: next };
+    });
   },
 
   setSelectedElements: (ids: string[]): void => {

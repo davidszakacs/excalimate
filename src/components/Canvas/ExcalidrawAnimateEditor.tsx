@@ -27,6 +27,7 @@ import type { AnimatableTarget } from '../../types/excalidraw';
 import type { CameraFrame } from '../../stores/projectStore';
 import { CAMERA_FRAME_TARGET_ID, useProjectStore } from '../../stores/projectStore';
 import { useUndoRedoStore } from '../../stores/undoRedoStore';
+import { useUIStore } from '../../stores/uiStore';
 import { CameraFrameOverlay } from './CameraFrameOverlay';
 import { computeCameraOverlayPosition } from './cameraOverlayMath';
 import { useExcalidrawAnimationSync } from './useExcalidrawAnimationSync';
@@ -74,6 +75,7 @@ export function ExcalidrawAnimateEditor({
   onDragElement,
   onResizeElement,
 }: ExcalidrawAnimateEditorProps) {
+  const theme = useUIStore((s) => s.theme);
   const apiRef = useRef<ExcalidrawImperativeAPI | null>(null);
   // Monotonic version token for deterministic self-change suppression.
   // Incremented before every programmatic api.updateScene() call.
@@ -330,7 +332,7 @@ export function ExcalidrawAnimateEditor({
         excalidrawAPI={handleApiReady}
         initialData={initialData}
         onChange={handleChange}
-        theme="light"
+        theme={theme}
       />
 
       <CameraFrameOverlay

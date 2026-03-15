@@ -1,15 +1,16 @@
-import { useState } from 'react';
-import { Button } from '../common';
+import { useState, type ReactNode } from 'react';
+import { Button } from '@mantine/core';
+import { IconMovie, IconVideo, IconPhoto, IconSvg } from '@tabler/icons-react';
 import { Modal } from '../common';
 import { exportAnimation } from '../../services/ExportService';
 import type { ExportFormat, ExportQuality } from '../../services/ExportService';
 import { useAnimationStore } from '../../stores/animationStore';
 
-const FORMAT_INFO: Record<ExportFormat, { label: string; desc: string; icon: string }> = {
-  mp4: { label: 'MP4', desc: 'H.264 — best quality, universal playback', icon: '🎬' },
-  webm: { label: 'WebM', desc: 'VP9 — smaller files, web-optimized', icon: '📹' },
-  gif: { label: 'GIF', desc: 'Animated image, works everywhere', icon: '🖼' },
-  svg: { label: 'SVG', desc: 'Animated vector, infinite resolution', icon: '✨' },
+const FORMAT_INFO: Record<ExportFormat, { label: string; desc: string; icon: ReactNode }> = {
+  mp4: { label: 'MP4', desc: 'H.264 — best quality, universal playback', icon: <IconMovie size={16} /> },
+  webm: { label: 'WebM', desc: 'VP9 — smaller files, web-optimized', icon: <IconVideo size={16} /> },
+  gif: { label: 'GIF', desc: 'Animated image, works everywhere', icon: <IconPhoto size={16} /> },
+  svg: { label: 'SVG', desc: 'Animated vector, infinite resolution', icon: <IconSvg size={16} /> },
 };
 
 const QUALITY_INFO: Record<ExportQuality, { label: string; desc: string }> = {
@@ -47,10 +48,10 @@ export function ExportControls() {
 
   if (exporting) {
     return (
-      <div className="flex items-center gap-1.5 text-[10px] text-[var(--color-text-secondary)]">
-        <span className="text-indigo-400">{FORMAT_INFO[format].icon} Exporting</span>
-        <div className="w-20 h-1.5 bg-[var(--color-border)] rounded-full overflow-hidden">
-          <div className="h-full bg-indigo-500 transition-all" style={{ width: `${progress * 100}%` }} />
+      <div className="flex items-center gap-1.5 text-[10px] text-text-muted">
+        <span className="text-accent">{FORMAT_INFO[format].icon} Exporting</span>
+        <div className="w-20 h-1.5 bg-border rounded-full overflow-hidden">
+          <div className="h-full bg-accent transition-all" style={{ width: `${progress * 100}%` }} />
         </div>
         <span>{Math.round(progress * 100)}%</span>
       </div>
@@ -59,14 +60,14 @@ export function ExportControls() {
 
   return (
     <>
-      <Button variant="ghost" size="sm" onClick={() => setShowDialog(true)}>
+      <Button variant="subtle" color="gray" size="compact-xs" onClick={() => setShowDialog(true)}>
         Export
       </Button>
 
       <Modal isOpen={showDialog} onClose={() => setShowDialog(false)} title="Export Animation">
           <div className="space-y-4 w-[340px]">
             {/* Clip info */}
-            <div className="text-xs text-[var(--color-text-secondary)]">
+            <div className="text-xs text-text-muted">
               Clip: {(clipStart / 1000).toFixed(1)}s – {(clipEnd / 1000).toFixed(1)}s ({clipDuration}s)
             </div>
 
@@ -81,12 +82,12 @@ export function ExportControls() {
                       key={f}
                       className={`px-3 py-2 rounded border text-left text-xs transition-colors ${
                         format === f
-                          ? 'border-indigo-500 bg-indigo-500/10 text-indigo-300'
-                          : 'border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-indigo-500/50'
+                          ? 'border-accent bg-accent-muted text-accent'
+                          : 'border-border text-text-muted hover:border-accent/50'
                       }`}
                       onClick={() => setFormat(f)}
                     >
-                      <div className="font-medium">{info.icon} {info.label}</div>
+                      <div className="font-medium flex items-center gap-1">{info.icon} {info.label}</div>
                       <div className="text-[10px] opacity-70 mt-0.5">{info.desc}</div>
                     </button>
                   );
@@ -106,8 +107,8 @@ export function ExportControls() {
                         key={q}
                         className={`px-2 py-1.5 rounded border text-center text-[10px] transition-colors ${
                           quality === q
-                            ? 'border-indigo-500 bg-indigo-500/10 text-indigo-300'
-                            : 'border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-indigo-500/50'
+                            ? 'border-accent bg-accent-muted text-accent'
+                            : 'border-border text-text-muted hover:border-accent/50'
                         }`}
                         onClick={() => setQuality(q)}
                       >
@@ -116,19 +117,16 @@ export function ExportControls() {
                     );
                   })}
                 </div>
-                <div className="text-[10px] text-[var(--color-text-secondary)] mt-1">
+                <div className="text-[10px] text-text-muted mt-1">
                   {QUALITY_INFO[quality].desc}
                 </div>
               </div>
             )}
 
             {/* Export button */}
-            <button
-              onClick={handleExport}
-              className="w-full px-4 py-2 text-sm font-medium rounded bg-indigo-500 hover:bg-indigo-600 text-white transition-colors"
-            >
+            <Button fullWidth onClick={handleExport}>
               Export {FORMAT_INFO[format].label}
-            </button>
+            </Button>
           </div>
         </Modal>
     </>

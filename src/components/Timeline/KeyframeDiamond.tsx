@@ -22,8 +22,8 @@ export function KeyframeDiamond({ keyframe, x, isSelected, onSelect, onDragStart
         transition-colors border
         ${
           isSelected
-            ? 'bg-indigo-400 border-indigo-300 shadow-sm shadow-indigo-500/50'
-            : 'bg-[var(--color-text-secondary)] border-[var(--color-border)] hover:bg-indigo-300'
+            ? 'bg-accent border-accent shadow-sm shadow-accent/50'
+            : 'bg-text-muted border-border hover:bg-accent'
         }`}
       style={{ left: `${x}px` }}
       onMouseDown={handleMouseDown}

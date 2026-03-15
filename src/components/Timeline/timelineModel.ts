@@ -1,3 +1,10 @@
+import type { ReactNode } from 'react';
+import { createElement } from 'react';
+import {
+  IconEye, IconArrowsHorizontal, IconArrowsVertical,
+  IconArrowsMaximize, IconArrowsMinimize, IconRotate, IconPencil,
+  IconArrowsMove,
+} from '@tabler/icons-react';
 import type { AnimationTrack, AnimatableProperty } from '../../types/animation';
 
 export const PROPERTY_LABELS: Record<AnimatableProperty, string> = {
@@ -10,19 +17,21 @@ export const PROPERTY_LABELS: Record<AnimatableProperty, string> = {
   drawProgress: 'Draw',
 };
 
-export const PROPERTY_ICONS: Record<AnimatableProperty, string> = {
-  opacity: '👁',
-  translateX: '↔',
-  translateY: '↕',
-  scaleX: '⇔',
-  scaleY: '⇕',
-  rotation: '↻',
-  drawProgress: '✏',
+const ic = (Comp: typeof IconEye) => createElement(Comp, { size: 12 });
+
+export const PROPERTY_ICONS: Record<AnimatableProperty, ReactNode> = {
+  opacity: ic(IconEye),
+  translateX: ic(IconArrowsHorizontal),
+  translateY: ic(IconArrowsVertical),
+  scaleX: ic(IconArrowsMaximize),
+  scaleY: ic(IconArrowsMinimize),
+  rotation: ic(IconRotate),
+  drawProgress: ic(IconPencil),
 };
 
-export const COMPOUND_PAIRS: [AnimatableProperty, AnimatableProperty, string, string][] = [
-  ['translateX', 'translateY', 'Position', '⊹'],
-  ['scaleX', 'scaleY', 'Scale', '⇔'],
+export const COMPOUND_PAIRS: [AnimatableProperty, AnimatableProperty, string, ReactNode][] = [
+  ['translateX', 'translateY', 'Position', ic(IconArrowsMove)],
+  ['scaleX', 'scaleY', 'Scale', ic(IconArrowsMaximize)],
 ];
 
 export type TargetGroup = {
@@ -35,7 +44,7 @@ export type TargetGroup = {
 export type VisualTrack = {
   id: string;
   label: string;
-  icon: string;
+  icon: ReactNode;
   tracks: AnimationTrack[];
   targetId: string;
 };

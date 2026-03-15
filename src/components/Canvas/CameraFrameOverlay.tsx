@@ -1,4 +1,5 @@
 import type React from 'react';
+import { IconMovie } from '@tabler/icons-react';
 import type { CameraOverlayPosition } from './cameraOverlayMath';
 
 interface CameraFrameOverlayProps {
@@ -21,7 +22,7 @@ export function CameraFrameOverlay({
       <div
         className="absolute inset-0"
         style={{
-          background: 'rgba(0, 0, 0, 0.15)',
+          background: 'var(--color-overlay)',
           clipPath: `polygon(
             0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 0%,
             ${frameLeft}px ${frameTop}px,
@@ -39,15 +40,15 @@ export function CameraFrameOverlay({
           top: frameTop,
           width: screenW,
           height: screenH,
-          border: `2px solid ${isSelected ? '#ef4444' : '#dc2626'}`,
+          border: `2px solid ${isSelected ? 'var(--color-camera-frame-selected)' : 'var(--color-camera-frame)'}`,
           borderRadius: 2,
         }}
       >
         <span
-          className="absolute text-white text-[10px] px-1 rounded-sm"
-          style={{ top: -18, left: 0, background: 'rgba(0,0,0,0.5)' }}
+          className="absolute text-white text-[10px] px-1 rounded-sm flex items-center gap-0.5"
+          style={{ top: -18, left: 0, background: 'var(--color-overlay-heavy)' }}
         >
-          🎬 {aspectRatio}
+          <IconMovie size={10} /> {aspectRatio}
         </span>
       </div>
 
@@ -79,7 +80,7 @@ export function CameraFrameOverlay({
           return (
             <div
               key={corner}
-              className="pointer-events-auto absolute w-2.5 h-2.5 bg-white border-2 border-red-500 rounded-sm"
+              className="pointer-events-auto absolute w-2.5 h-2.5 bg-surface border-2 border-camera-frame rounded-sm"
               style={{
                 left: isRight ? frameLeft + screenW - 5 : frameLeft - 5,
                 top: isBottom ? frameTop + screenH - 5 : frameTop - 5,

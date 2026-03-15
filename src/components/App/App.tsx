@@ -1,4 +1,7 @@
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
+import { MantineProvider } from '@mantine/core';
+import { Notifications } from '@mantine/notifications';
+import { ModalsProvider } from '@mantine/modals';
 import { Toolbar } from '../Toolbar';
 import { LayersPanel } from '../Layers/LayersPanel';
 import { SequenceRevealPanel } from '../SequenceReveal/SequenceRevealPanel';
@@ -29,6 +32,14 @@ export function App() {
 
   getPlaybackController();
   useShareLoader();
+
+  // Apply theme to the document element and Mantine color scheme
+  const theme = useUIStore((s) => s.theme);
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
+  const mantineColorScheme = theme === 'dark' ? 'dark' : 'light';
 
   // Use selectors to avoid over-subscription
   const mode = useUIStore((s) => s.mode);
@@ -75,15 +86,18 @@ export function App() {
   } = useKeyframeActions();
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-[var(--color-surface)] text-[var(--color-text)]">
-      {/* Top toolbar */}
-      <Toolbar />
+    <MantineProvider forceColorScheme={mantineColorScheme}>
+      <ModalsProvider>
+        <Notifications position="top-right" />
+        <div className="flex flex-col h-screen w-screen bg-surface text-text">
+          {/* Top toolbar */}
+          <Toolbar />
 
       {/* Main content area */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left: Layers panel (animate mode only) */}
         {mode === 'animate' && (
-          <aside className="w-[200px] border-r border-[var(--color-border)] bg-[var(--color-surface-secondary)] overflow-y-auto">
+          <aside className="w-[200px] border-r border-border bg-surface-alt overflow-y-auto">
             <LayersPanel
               targets={targets}
               tracks={timeline.tracks}
@@ -94,9 +108,9 @@ export function App() {
         )}
 
         {/* Center: Canvas area */}
-        <main className="flex-1 relative overflow-hidden bg-[var(--color-surface)]">
-          <ErrorBoundary fallback={<div className="flex items-center justify-center h-full text-sm text-red-400">Canvas error</div>}>
-            <Suspense fallback={<div className="flex items-center justify-center h-full text-sm text-[var(--color-text-secondary)]">Loading editor…</div>}>
+        <main className="flex-1 relative overflow-hidden bg-surface">
+          <ErrorBoundary fallback={<div className="flex items-center justify-center h-full text-sm text-danger">Canvas error</div>}>
+            <Suspense fallback={<div className="flex items-center justify-center h-full text-sm text-text-muted">Loading editor…</div>}>
             {mode === 'edit' ? (
               <ExcalidrawEditor
                 key={project?.id ?? 'empty'}
@@ -127,8 +141,8 @@ export function App() {
         </main>
 
         {/* Right: Property panel */}
-        <aside className="w-[280px] border-l border-[var(--color-border)] bg-[var(--color-surface-secondary)] overflow-y-auto">
-          <ErrorBoundary fallback={<div className="flex items-center justify-center h-full text-sm text-red-400">Property panel error</div>}>
+        <aside className="w-[280px] border-l border-border bg-surface-alt overflow-y-auto">
+          <ErrorBoundary fallback={<div className="flex items-center justify-center h-full text-sm text-danger">Property panel error</div>}>
             <PropertyPanelWrapper
               selectedTargets={selectedTargets}
               allTargets={targets}
@@ -145,8 +159,8 @@ export function App() {
       </div>
 
       {/* Bottom: Timeline panel */}
-      <div className="h-[250px] border-t border-[var(--color-border)] bg-[var(--color-surface-secondary)]">
-        <ErrorBoundary fallback={<div className="flex items-center justify-center h-full text-sm text-red-400">Timeline error</div>}>
+      <div className="h-[250px] mx-2 mb-2 border border-border bg-surface-alt rounded-lg shadow-float overflow-hidden">
+        <ErrorBoundary fallback={<div className="flex items-center justify-center h-full text-sm text-danger">Timeline error</div>}>
         <TimelinePanelWrapper
           tracks={timeline.tracks}
           duration={timeline.duration}
@@ -170,5 +184,7 @@ export function App() {
         </ErrorBoundary>
       </div>
     </div>
+        </ModalsProvider>
+      </MantineProvider>
   );
 }

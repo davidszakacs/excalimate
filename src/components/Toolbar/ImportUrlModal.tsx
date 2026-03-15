@@ -1,4 +1,5 @@
-import { Button, Modal } from '../common';
+import { Button } from '@mantine/core';
+import { Modal } from '../common';
 
 interface ImportUrlModalProps {
   isOpen: boolean;
@@ -24,17 +25,17 @@ export function ImportUrlModal({
       title="Import from Excalidraw URL"
       footer={
         <div className="flex gap-2 justify-end">
-          <Button variant="secondary" size="sm" onClick={onClose}>
+          <Button variant="default" size="xs" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="primary" size="sm" onClick={onImport} disabled={loading || !url.trim()}>
+          <Button size="xs" onClick={onImport} disabled={loading || !url.trim()}>
             {loading ? 'Loading...' : 'Import'}
           </Button>
         </div>
       }
     >
       <div className="space-y-3">
-        <p className="text-sm text-[var(--color-text-secondary)]">
+        <p className="text-sm text-text-muted">
           Paste an Excalidraw sharing link to import the drawing.
         </p>
         <input
@@ -45,12 +46,12 @@ export function ImportUrlModal({
             if (e.key === 'Enter') onImport();
           }}
           placeholder="https://excalidraw.com/#json=..."
-          className="w-full px-3 py-2 text-sm rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] placeholder:text-[var(--color-text-secondary)] focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+          className="w-full px-3 py-2 text-sm rounded-md border border-border bg-surface text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent/50"
           autoFocus
           disabled={loading}
         />
-        <p className="text-xs text-[var(--color-text-secondary)]">
-          Supported format: <code className="text-indigo-400">https://excalidraw.com/#json=ID,KEY</code>
+        <p className="text-xs text-text-muted">
+          Supported format: <code className="text-accent">https://excalidraw.com/#json=ID,KEY</code>
         </p>
       </div>
     </Modal>

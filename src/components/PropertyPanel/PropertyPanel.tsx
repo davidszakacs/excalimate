@@ -4,6 +4,12 @@ import type {
   AnimatableProperty,
 } from '../../types/animation';
 import type { AnimatableTarget } from '../../types/excalidraw';
+import type { ReactNode } from 'react';
+import { ActionIcon, UnstyledButton } from '@mantine/core';
+import {
+  IconKeyframe, IconKeyframeFilled, IconBoxMultiple, IconShape,
+  IconArrowsMove, IconArrowsMaximize,
+} from '@tabler/icons-react';
 import { CAMERA_FRAME_TARGET_ID } from '../../stores/projectStore';
 import { PROPERTY_CONFIG } from './propertyConfig';
 import { toDisplay, toInternal } from './propertyValueAdapters';
@@ -26,9 +32,9 @@ export interface PropertyPanelProps {
 function TargetInfo({ target }: { target: AnimatableTarget }) {
   return (
     <div className="flex items-center gap-2 px-3 py-1.5">
-      <span className="text-indigo-400 text-xs">{target.type === 'group' ? '⊞' : '◇'}</span>
+      <span className="text-accent text-xs">{target.type === 'group' ? <IconBoxMultiple size={14} /> : <IconShape size={14} />}</span>
       <span className="text-xs font-medium truncate flex-1">{target.label}</span>
-      <span className="text-[10px] text-[var(--color-text-secondary)]">
+      <span className="text-[10px] text-text-muted">
         {target.type === 'group'
           ? `${target.elementIds.length} els`
           : `${Math.round(target.originalBounds.width)}×${Math.round(target.originalBounds.height)}`}
@@ -72,23 +78,23 @@ export function PropertyPanel({
   const KfButton = ({ prop }: { prop: AnimatableProperty }) => {
     const has = hasKeyframeAt(prop);
     return (
-      <button
-        className={`w-4 h-4 flex items-center justify-center text-[10px] rounded transition-colors shrink-0 ${
-          has ? 'text-indigo-400 hover:text-red-400' : 'text-[var(--color-text-secondary)] hover:text-indigo-400'
-        }`}
+      <ActionIcon
+        variant="subtle"
+        color={has ? 'indigo' : 'gray'}
+        size="xs"
         onClick={() => toggleKeyframeFor(prop)}
         title={has ? `Remove keyframe at ${Math.round(currentTime)}ms` : `Add keyframe at ${Math.round(currentTime)}ms`}
       >
-        {has ? '◆' : '◇'}
-      </button>
+        {has ? <IconKeyframeFilled size={14} /> : <IconKeyframe size={14} />}
+      </ActionIcon>
     );
   };
 
-  type PropGroup = { label: string; icon: string; properties: { prop: AnimatableProperty; label: string; suffix: string }[] };
+  type PropGroup = { label: string; icon: ReactNode; properties: { prop: AnimatableProperty; label: string; suffix: string }[] };
   const groups: PropGroup[] = [
     {
       label: isCamera ? 'Pan' : 'Position',
-      icon: '⊹',
+      icon: <IconArrowsMove size={14} />,
       properties: [
         { prop: 'translateX', label: 'X', suffix: 'px' },
         { prop: 'translateY', label: 'Y', suffix: 'px' },
@@ -96,7 +102,7 @@ export function PropertyPanel({
     },
     {
       label: isCamera ? 'Zoom' : 'Scale',
-      icon: '⇔',
+      icon: <IconArrowsMaximize size={14} />,
       properties: [
         { prop: 'scaleX', label: 'X', suffix: '%' },
         { prop: 'scaleY', label: 'Y', suffix: '%' },
@@ -113,30 +119,30 @@ export function PropertyPanel({
   if (selectedTargets.length === 0) {
     return (
       <div className="flex flex-col h-full overflow-y-auto">
-        <div className="px-3 py-2 border-b border-[var(--color-border)]">
-          <div className="text-[10px] text-[var(--color-text-secondary)] uppercase tracking-wider font-semibold">
+        <div className="px-3 py-2 border-b border-border">
+          <div className="text-[10px] text-text-muted uppercase tracking-wider font-semibold">
             Animation Properties
           </div>
         </div>
         {allTargets.length === 0 ? (
-          <div className="flex flex-col items-center justify-center flex-1 text-sm text-[var(--color-text-secondary)] px-4 text-center">
-            <div className="text-2xl mb-2 opacity-40">◇</div>
+          <div className="flex flex-col items-center justify-center flex-1 text-sm text-text-muted px-4 text-center">
+            <IconKeyframe size={32} className="mb-2 opacity-40" />
             <p>Draw something in the editor to get started.</p>
           </div>
         ) : (
           <div className="px-2 py-1">
-            <div className="text-xs text-[var(--color-text-secondary)] px-1 py-1 mb-1">
+            <div className="text-xs text-text-muted px-1 py-1 mb-1">
               Select an element to animate:
             </div>
             {allTargets.map((target) => (
-              <button
+              <UnstyledButton
                 key={target.id}
-                className="flex items-center gap-2 w-full px-2 py-1.5 text-xs rounded hover:bg-indigo-500/10 text-left transition-colors"
+                className="flex items-center gap-2 w-full px-2 py-1.5 text-xs rounded hover:bg-accent-muted text-left transition-colors"
                 onClick={() => onSelectTarget(target.id)}
               >
-                <span className="text-indigo-400">{target.type === 'group' ? '⊞' : '◇'}</span>
+                <span className="text-accent">{target.type === 'group' ? <IconBoxMultiple size={14} /> : <IconShape size={14} />}</span>
                 <span className="truncate flex-1">{target.label}</span>
-              </button>
+              </UnstyledButton>
             ))}
           </div>
         )}
@@ -146,8 +152,8 @@ export function PropertyPanel({
 
   return (
     <div className="flex flex-col h-full overflow-y-auto" aria-label="Properties">
-      <div className="border-b border-[var(--color-border)]">
-        <div className="px-3 py-1 text-[10px] text-[var(--color-text-secondary)] uppercase tracking-wider font-semibold">
+      <div className="border-b border-border">
+        <div className="px-3 py-1 text-[10px] text-text-muted uppercase tracking-wider font-semibold">
           {isMulti ? `${selectedTargets.length} Selected` : 'Selected'}
         </div>
         {selectedTargets.map((target) => (
@@ -155,7 +161,7 @@ export function PropertyPanel({
         ))}
       </div>
 
-      <div className="px-3 py-1 text-[10px] text-[var(--color-text-secondary)] uppercase tracking-wider bg-[#1a1a2a]">
+      <div className="px-3 py-1 text-[10px] text-text-muted uppercase tracking-wider bg-surface-alt">
         Properties at {Math.round(currentTime)}ms
       </div>
 
@@ -164,19 +170,19 @@ export function PropertyPanel({
         const allHaveKf = groupProps.every(p => hasKeyframeAt(p));
         const anyHasKf = groupProps.some(p => hasKeyframeAt(p));
         return (
-          <div key={group.label} className="px-3 py-2 border-b border-[var(--color-border)]">
+          <div key={group.label} className="px-3 py-2 border-b border-border">
             <div className="flex items-center gap-1.5 mb-1.5">
               <span className="text-xs">{group.icon}</span>
               <span className="text-xs font-medium flex-1">{group.label}</span>
-              <button
-                className={`w-4 h-4 flex items-center justify-center text-[10px] rounded transition-colors shrink-0 ${
-                  anyHasKf ? 'text-indigo-400 hover:text-red-400' : 'text-[var(--color-text-secondary)] hover:text-indigo-400'
-                }`}
+              <ActionIcon
+                variant="subtle"
+                color={anyHasKf ? 'indigo' : 'gray'}
+                size="xs"
                 onClick={() => toggleCompoundKeyframe(groupProps)}
                 title={allHaveKf ? `Remove ${group.label} keyframe` : `Add ${group.label} keyframe`}
               >
-                {anyHasKf ? '◆' : '◇'}
-              </button>
+                {anyHasKf ? <IconKeyframeFilled size={14} /> : <IconKeyframe size={14} />}
+              </ActionIcon>
             </div>
             <div className="space-y-1">
               {group.properties.map(({ prop, label, suffix }) => {
@@ -187,7 +193,7 @@ export function PropertyPanel({
                 const sliderMax = config.max ?? (prop === 'rotation' ? 360 : 500);
                 return (
                   <div key={prop} className="flex items-center gap-1.5">
-                    <span className="text-[10px] text-[var(--color-text-secondary)] w-3">{label}</span>
+                    <span className="text-[10px] text-text-muted w-3">{label}</span>
                     <input
                       type="range"
                       min={sliderMin}
@@ -195,7 +201,7 @@ export function PropertyPanel({
                       step={config.step}
                       value={displayVal}
                       onChange={(e) => ensureAndSet(prop, toInternal(prop, Number(e.target.value)))}
-                      className="flex-1 h-1.5 accent-indigo-500 cursor-pointer"
+                      className="flex-1 h-1.5 accent-accent cursor-pointer"
                     />
                     <input
                       type="number"
@@ -207,9 +213,9 @@ export function PropertyPanel({
                       step={config.step}
                       min={config.min}
                       max={config.max}
-                      className="w-14 px-1 py-0.5 text-[10px] text-right rounded border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] focus:outline-none focus:ring-1 focus:ring-indigo-500/50"
+                      className="w-14 px-1 py-0.5 text-[10px] text-right rounded border border-border bg-surface text-text focus:outline-none focus:ring-1 focus:ring-accent/50"
                     />
-                    <span className="text-[9px] text-[var(--color-text-secondary)] w-3">{suffix}</span>
+                    <span className="text-[9px] text-text-muted w-3">{suffix}</span>
                   </div>
                 );
               })}
@@ -225,7 +231,7 @@ export function PropertyPanel({
         const sliderMin = config.min ?? (prop === 'rotation' ? -360 : -500);
         const sliderMax = config.max ?? (prop === 'rotation' ? 360 : 500);
         return (
-          <div key={prop} className="px-3 py-2 border-b border-[var(--color-border)]">
+          <div key={prop} className="px-3 py-2 border-b border-border">
             <div className="flex items-center gap-1.5 mb-1.5">
               <span className="text-xs">{config.icon}</span>
               <span className="text-xs font-medium">{label}</span>
@@ -238,7 +244,7 @@ export function PropertyPanel({
                 step={config.step}
                 value={displayVal}
                 onChange={(e) => ensureAndSet(prop, toInternal(prop, Number(e.target.value)))}
-                className="flex-1 h-1.5 accent-indigo-500 cursor-pointer"
+                className="flex-1 h-1.5 accent-accent cursor-pointer"
               />
               <input
                 type="number"
@@ -250,9 +256,9 @@ export function PropertyPanel({
                 step={config.step}
                 min={config.min}
                 max={config.max}
-                className="w-14 px-1 py-0.5 text-[10px] text-right rounded border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text)] focus:outline-none focus:ring-1 focus:ring-indigo-500/50"
+                className="w-14 px-1 py-0.5 text-[10px] text-right rounded border border-border bg-surface text-text focus:outline-none focus:ring-1 focus:ring-accent/50"
               />
-              <span className="text-[9px] text-[var(--color-text-secondary)] w-3">{config.suffix}</span>
+              <span className="text-[9px] text-text-muted w-3">{config.suffix}</span>
               <KfButton prop={prop} />
             </div>
           </div>
@@ -261,7 +267,7 @@ export function PropertyPanel({
 
       {allVisibleKeyframes.length > 0 && (
         <>
-          <div className="px-3 py-1 text-[10px] text-[var(--color-text-secondary)] uppercase tracking-wider bg-[#1a1a2a]">
+          <div className="px-3 py-1 text-[10px] text-text-muted uppercase tracking-wider bg-surface-alt">
             Keyframes at {Math.round(currentTime)}ms
           </div>
           {allVisibleKeyframes.map(({ track, keyframe }) => (

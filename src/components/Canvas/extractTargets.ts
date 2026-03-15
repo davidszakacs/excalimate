@@ -173,7 +173,7 @@ export function extractTargets(elements: readonly ExcalidrawElement[]): Animatab
   targets.push({
     id: CAMERA_FRAME_TARGET_ID,
     type: 'element',
-    label: `🎬 Camera Frame (${frame.aspectRatio})`,
+    label: `Camera Frame (${frame.aspectRatio})`,
     elementIds: [CAMERA_FRAME_TARGET_ID],
     originalBounds: {
       x: frame.x - frame.width / 2,
