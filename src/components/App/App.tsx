@@ -1,13 +1,9 @@
 import { Toolbar } from '../Toolbar';
 import { ExcalidrawEditor } from '../Canvas/ExcalidrawEditor';
-import { ExcalidrawAnimateEditor } from '../Canvas/ExcalidrawAnimateEditor';
 import { LayersPanel } from '../Layers/LayersPanel';
-import { TimelinePanel } from '../Timeline/TimelinePanel';
-import { PropertyPanel } from '../PropertyPanel/PropertyPanel';
 import { SequenceRevealPanel } from '../SequenceReveal/SequenceRevealPanel';
 import { ErrorBoundary } from '../common/ErrorBoundary';
 import { useAnimationStore } from '../../stores/animationStore';
-import { usePlaybackStore } from '../../stores/playbackStore';
 import { useProjectStore } from '../../stores/projectStore';
 import { useUIStore } from '../../stores/uiStore';
 import { useAppHotkeys } from '../../hooks/useAppHotkeys';
@@ -16,6 +12,9 @@ import { useShareLoader } from './useShareLoader';
 import { useSceneChangeSync } from './useSceneChangeSync';
 import { useSelectionDerivedState } from './useSelectionDerivedState';
 import { useKeyframeActions } from './useKeyframeActions';
+import { AnimateCanvasWrapper } from './AnimateCanvasWrapper';
+import { TimelinePanelWrapper } from './TimelinePanelWrapper';
+import { PropertyPanelWrapper } from './PropertyPanelWrapper';
 
 export function App() {
   useAppHotkeys();
@@ -35,8 +34,6 @@ export function App() {
   const selectedKeyframeIds = useAnimationStore((s) => s.selectedKeyframeIds);
   const clipStart = useAnimationStore((s) => s.clipStart);
   const clipEnd = useAnimationStore((s) => s.clipEnd);
-  const currentTime = usePlaybackStore((s) => s.currentTime);
-  const frameState = usePlaybackStore((s) => s.frameState);
 
   const { handleSceneChange, handleElementsSelected } = useSceneChangeSync();
   const {
@@ -45,13 +42,11 @@ export function App() {
     selectedTargets,
     selectedTargetTracks,
     selectedKeyframeDetails,
-    highlightedKeyframeIds,
   } = useSelectionDerivedState({
     targets,
     timeline,
     selectedElementIds,
     selectedKeyframeIds,
-    currentTime,
   });
   const {
     handleScrub,
@@ -101,10 +96,9 @@ export function App() {
                 initialData={project?.scene}
               />
             ) : (
-              <ExcalidrawAnimateEditor
+              <AnimateCanvasWrapper
                 scene={project?.scene ?? null}
                 targets={targets}
-                frameState={frameState}
                 selectedElementIds={selectedElementIds}
                 cameraFrame={cameraFrame}
                 onSelectElements={handleSelectElements}
@@ -125,11 +119,10 @@ export function App() {
         {/* Right: Property panel */}
         <aside className="w-[280px] border-l border-[var(--color-border)] bg-[var(--color-surface-secondary)] overflow-y-auto">
           <ErrorBoundary fallback={<div className="flex items-center justify-center h-full text-sm text-red-400">Property panel error</div>}>
-            <PropertyPanel
+            <PropertyPanelWrapper
               selectedTargets={selectedTargets}
               allTargets={targets}
               tracks={selectedTargetTracks}
-              currentTime={currentTime}
               selectedKeyframes={selectedKeyframeDetails}
               onAddTrack={handleAddTrackProp}
               onAddOrUpdateKeyframe={handleAddOrUpdateKeyframe}
@@ -144,12 +137,11 @@ export function App() {
       {/* Bottom: Timeline panel */}
       <div className="h-[250px] border-t border-[var(--color-border)] bg-[var(--color-surface-secondary)]">
         <ErrorBoundary fallback={<div className="flex items-center justify-center h-full text-sm text-red-400">Timeline error</div>}>
-        <TimelinePanel
+        <TimelinePanelWrapper
           tracks={timeline.tracks}
           duration={timeline.duration}
-          currentTime={currentTime}
           selectedTrackId={selectedTrackId}
-          selectedKeyframeIds={highlightedKeyframeIds}
+          rawSelectedKeyframeIds={selectedKeyframeIds}
           clipStart={clipStart}
           clipEnd={clipEnd}
           onSelectTrack={handleSelectTrack}

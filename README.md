@@ -1,5 +1,11 @@
 # Excalimate
 
+[![npm version](https://img.shields.io/npm/v/@excalimate/mcp-server)](https://www.npmjs.com/package/@excalimate/mcp-server)
+[![npm downloads](https://img.shields.io/npm/dm/@excalimate/mcp-server)](https://www.npmjs.com/package/@excalimate/mcp-server)
+[![license](https://img.shields.io/github/license/davidszakacs/excalimate)](https://github.com/davidszakacs/excalimate/blob/main/LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/davidszakacs/excalimate)](https://github.com/davidszakacs/excalimate)
+[![last commit](https://img.shields.io/github/last-commit/davidszakacs/excalimate)](https://github.com/davidszakacs/excalimate/commits)
+
 Create keyframe animations from Excalidraw designs. Draw diagrams with the full Excalidraw editor, then animate elements with opacity fades, position slides, scale effects, rotation, and arrow draw-on animations. Export as MP4, WebM, GIF, or animated SVG.
 
 Includes an **MCP server** for AI-driven animation — let Copilot, Claude or other AI agents create and animate diagrams in real-time.

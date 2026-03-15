@@ -7,21 +7,18 @@ export function useSelectionDerivedState(params: {
   timeline: AnimationTimeline;
   selectedElementIds: string[];
   selectedKeyframeIds: string[];
-  currentTime: number;
 }): {
   targetLabels: Map<string, string>;
   targetOrder: Map<string, number>;
   selectedTargets: AnimatableTarget[];
   selectedTargetTracks: AnimationTrack[];
   selectedKeyframeDetails: { track: AnimationTrack; keyframe: Keyframe }[];
-  highlightedKeyframeIds: string[];
 } {
   const {
     targets,
     timeline,
     selectedElementIds,
     selectedKeyframeIds,
-    currentTime,
   } = params;
 
   const targetLabels = useMemo(() => {
@@ -63,29 +60,11 @@ export function useSelectionDerivedState(params: {
     return result;
   }, [timeline.tracks, selectedKeyframeIds]);
 
-  const highlightedKeyframeIds = useMemo(() => {
-    const ids = new Set<string>();
-    const selectedIdSet = new Set(selectedElementIds);
-
-    for (const track of timeline.tracks) {
-      if (!selectedIdSet.has(track.targetId)) continue;
-      for (const kf of track.keyframes) {
-        if (selectedKeyframeIds.includes(kf.id)) ids.add(kf.id);
-        if (Math.abs(kf.time - currentTime) < 1) ids.add(kf.id);
-      }
-    }
-
-    for (const id of selectedKeyframeIds) ids.add(id);
-
-    return [...ids];
-  }, [timeline.tracks, currentTime, selectedElementIds, selectedKeyframeIds]);
-
   return {
     targetLabels,
     targetOrder,
     selectedTargets,
     selectedTargetTracks,
     selectedKeyframeDetails,
-    highlightedKeyframeIds,
   };
 }
