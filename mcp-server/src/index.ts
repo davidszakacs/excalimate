@@ -177,11 +177,12 @@ async function startHTTPServer(factoryWithSSE: (sseClients: Set<Response>, broad
   // Upload encrypted blob
   app.post('/share', shareLimiter, express.raw({ type: 'application/octet-stream', limit: '10mb' }), (req: Request, res: Response) => {
     const id = crypto.randomUUID().replace(/-/g, '').slice(0, 16);
-    const body = req.body as Buffer | undefined;
-    if (!body || body.length === 0) {
+    const rawBody = req.body as unknown;
+    if (!Buffer.isBuffer(rawBody) || rawBody.length === 0) {
       res.status(400).json({ error: 'Empty body. Send as application/octet-stream.' });
       return;
     }
+    const body = rawBody as Buffer;
     if (body.length > MAX_SHARE_SIZE) {
       res.status(413).json({ error: 'Payload too large' });
       return;
