@@ -79,7 +79,8 @@ export function ExcalidrawEditor({
         ...(saved ? {
           scrollX: saved.scrollX,
           scrollY: saved.scrollY,
-          zoom: { value: saved.zoom },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          zoom: { value: saved.zoom } as any,
         } : {}),
       },
       files: initialData.files,

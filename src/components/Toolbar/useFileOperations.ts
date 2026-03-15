@@ -1,5 +1,6 @@
 import { useProjectStore } from '../../stores/projectStore';
 import { useAnimationStore } from '../../stores/animationStore';
+import type { ExcalidrawSceneData } from '../../types/excalidraw';
 import {
   parseExcalidrawFileBlob,
   parseProjectFileBlob,
@@ -22,13 +23,9 @@ function resetTimeline() {
   });
 }
 
-function importScene(name: string, scene: { elements: unknown[]; appState?: unknown; files?: unknown }) {
-  useProjectStore.getState().createNewProject(name, {
-    elements: scene.elements,
-    appState: scene.appState ?? {},
-    files: scene.files ?? {},
-  });
-  const targets = extractTargets(scene.elements as import('@excalidraw/excalidraw/element/types').ExcalidrawElement[]);
+function importScene(name: string, scene: ExcalidrawSceneData) {
+  useProjectStore.getState().createNewProject(name, scene);
+  const targets = extractTargets(scene.elements);
   useProjectStore.getState().setTargets(targets);
   resetTimeline();
 }

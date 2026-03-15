@@ -34,7 +34,7 @@ export async function generateEncryptionKey(): Promise<CryptoKey> {
 async function compress(data: Uint8Array): Promise<Uint8Array> {
   const cs = new CompressionStream('gzip');
   const writer = cs.writable.getWriter();
-  writer.write(data);
+  writer.write(data as unknown as BufferSource);
   writer.close();
   const reader = cs.readable.getReader();
   const chunks: Uint8Array[] = [];
@@ -59,7 +59,7 @@ async function compress(data: Uint8Array): Promise<Uint8Array> {
 async function decompress(data: Uint8Array): Promise<Uint8Array> {
   const ds = new DecompressionStream('gzip');
   const writer = ds.writable.getWriter();
-  writer.write(data);
+  writer.write(data as unknown as BufferSource);
   writer.close();
   const reader = ds.readable.getReader();
   const chunks: Uint8Array[] = [];
@@ -93,9 +93,9 @@ export async function encryptData(data: unknown, key: CryptoKey): Promise<ArrayB
   // Generate a random IV for each encryption (12 bytes for AES-GCM)
   const iv = window.crypto.getRandomValues(new Uint8Array(12));
   const encrypted = await window.crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv },
+    { name: 'AES-GCM', iv: iv as unknown as BufferSource },
     key,
-    compressed,
+    compressed as unknown as BufferSource,
   );
   // Layout: [IV (12 bytes)] [ciphertext]
   const result = new Uint8Array(iv.byteLength + encrypted.byteLength);
@@ -114,9 +114,9 @@ export async function decryptData<T = unknown>(encrypted: ArrayBuffer, key: Cryp
   const iv = data.slice(0, 12);
   const ciphertext = data.slice(12);
   const decrypted = await window.crypto.subtle.decrypt(
-    { name: 'AES-GCM', iv },
+    { name: 'AES-GCM', iv: iv as unknown as BufferSource },
     key,
-    ciphertext,
+    ciphertext as unknown as BufferSource,
   );
   const raw = new Uint8Array(decrypted);
 
@@ -159,7 +159,7 @@ export async function importKeyFromString(keyStr: string): Promise<CryptoKey> {
 
   return window.crypto.subtle.importKey(
     'raw',
-    bytes,
+    bytes as unknown as BufferSource,
     { name: 'AES-GCM', length: keyLength },
     false,
     ['decrypt'],
