@@ -1,5 +1,5 @@
+import { Suspense, lazy } from 'react';
 import { Toolbar } from '../Toolbar';
-import { ExcalidrawEditor } from '../Canvas/ExcalidrawEditor';
 import { LayersPanel } from '../Layers/LayersPanel';
 import { SequenceRevealPanel } from '../SequenceReveal/SequenceRevealPanel';
 import { ErrorBoundary } from '../common/ErrorBoundary';
@@ -12,9 +12,17 @@ import { useShareLoader } from './useShareLoader';
 import { useSceneChangeSync } from './useSceneChangeSync';
 import { useSelectionDerivedState } from './useSelectionDerivedState';
 import { useKeyframeActions } from './useKeyframeActions';
-import { AnimateCanvasWrapper } from './AnimateCanvasWrapper';
 import { TimelinePanelWrapper } from './TimelinePanelWrapper';
 import { PropertyPanelWrapper } from './PropertyPanelWrapper';
+
+// Lazy-load heavy editor components — each pulls in @excalidraw/excalidraw (~2MB).
+// Only the active mode's editor is loaded, reducing initial bundle size.
+const ExcalidrawEditor = lazy(() =>
+  import('../Canvas/ExcalidrawEditor').then((m) => ({ default: m.ExcalidrawEditor })),
+);
+const AnimateCanvasWrapper = lazy(() =>
+  import('./AnimateCanvasWrapper').then((m) => ({ default: m.AnimateCanvasWrapper })),
+);
 
 export function App() {
   useAppHotkeys();
@@ -88,6 +96,7 @@ export function App() {
         {/* Center: Canvas area */}
         <main className="flex-1 relative overflow-hidden bg-[var(--color-surface)]">
           <ErrorBoundary fallback={<div className="flex items-center justify-center h-full text-sm text-red-400">Canvas error</div>}>
+            <Suspense fallback={<div className="flex items-center justify-center h-full text-sm text-[var(--color-text-secondary)]">Loading editor…</div>}>
             {mode === 'edit' ? (
               <ExcalidrawEditor
                 key={project?.id ?? 'empty'}
@@ -106,6 +115,7 @@ export function App() {
                 onResizeElement={handleResizeElement}
               />
             )}
+            </Suspense>
           </ErrorBoundary>
           {/* Sequence Reveal Panel (floating) */}
           {mode === 'animate' && sequenceRevealOpen && (

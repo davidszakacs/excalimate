@@ -18,9 +18,9 @@ async function main() {
     await startStdioServer(() => createServer(store));
   } else {
     await startHTTPServer((_sseClients, broadcastSSE) => {
-      return createServer(store, (state) => {
+      return createServer(store, (delta) => {
         try {
-          const data = JSON.stringify({ type: 'state', state });
+          const data = JSON.stringify({ type: 'state', state: delta });
           broadcastSSE(data);
         } catch (err) {
           console.error('Failed to broadcast state:', err);
