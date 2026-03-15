@@ -9,8 +9,8 @@
 
   [![npm version](https://img.shields.io/npm/v/@excalimate/mcp-server?style=flat-square)](https://www.npmjs.com/package/@excalimate/mcp-server)
   [![npm downloads](https://img.shields.io/npm/dm/@excalimate/mcp-server?style=flat-square)](https://www.npmjs.com/package/@excalimate/mcp-server)
-  [![license](https://img.shields.io/github/license/davidszakacs/excalimate?style=flat-square)](LICENSE)
-  [![GitHub stars](https://img.shields.io/github/stars/davidszakacs/excalimate?style=flat-square)](https://github.com/davidszakacs/excalimate)
+  [![license](https://img.shields.io/github/license/excalimate/excalimate?style=flat-square)](LICENSE)
+  [![GitHub stars](https://img.shields.io/github/stars/excalimate/excalimate?style=flat-square)](https://github.com/excalimate/excalimate)
 
   [Website](https://excalimate.com) · [MCP Server Docs](mcp-server/README.md) · [Report Bug](https://github.com/excalimate/excalimate/issues)
 
@@ -18,12 +18,12 @@
 
 Draw diagrams with the full Excalidraw editor, then animate elements with opacity fades, position slides, scale effects, rotation, and arrow draw-on animations. Export as MP4, WebM, GIF, or animated SVG. Includes an **MCP server** so AI agents can create and animate diagrams in real-time.
 
-<!--
+
 ## Demo
 
 TODO: Embed demo video/GIF here
-<video src="..." />
--->
+<video src="docs/demo_video.mp4" />
+
 
 > [!CAUTION]
 > A considerable part of this codebase was built with AI. The process of cleaning up the code and fixing bugs is still ongoing — use it cautiously. If you encounter any issues, please [report them](https://github.com/excalimate/excalimate/issues).
@@ -135,7 +135,7 @@ Excalimate ships with **16 specialized skills** that teach AI agents how to crea
 **GitHub Copilot (recommended):**
 
 ```bash
-npx skills add https://github.com/davidszakacs/excalimate
+npx skills add https://github.com/excalimate/excalimate
 ```
 
 **Manual installation (any agent):**
