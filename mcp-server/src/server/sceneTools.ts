@@ -48,8 +48,9 @@ export function registerSceneTools(
     { ids: z.array(z.string()).describe('Array of element IDs to remove') },
     async ({ ids }) => {
       const state = ctx.getState();
+      const idSet = new Set(ids);
       const before = state.scene.elements.length;
-      state.scene.elements = state.scene.elements.filter((el: any) => !ids.includes(el.id));
+      state.scene.elements = state.scene.elements.filter((el: any) => !idSet.has(el.id));
       const removed = before - state.scene.elements.length;
       return { content: [{ type: 'text' as const, text: `Removed ${removed} elements. Total: ${state.scene.elements.length}.` }] };
     },
@@ -64,10 +65,15 @@ export function registerSceneTools(
         const parsed = JSON.parse(updates);
         if (!Array.isArray(parsed)) return { content: [{ type: 'text' as const, text: 'Error: must be array' }] };
         const state = ctx.getState();
+        // Build id→index map for O(1) lookups instead of O(n) findIndex per update
+        const indexById = new Map<string, number>();
+        for (let i = 0; i < state.scene.elements.length; i++) {
+          indexById.set((state.scene.elements[i] as any).id, i);
+        }
         let updated = 0;
         for (const upd of parsed) {
-          const idx = state.scene.elements.findIndex((el: any) => el.id === upd.id);
-          if (idx >= 0) {
+          const idx = indexById.get(upd.id);
+          if (idx !== undefined) {
             state.scene.elements[idx] = { ...state.scene.elements[idx], ...upd };
             updated++;
           }

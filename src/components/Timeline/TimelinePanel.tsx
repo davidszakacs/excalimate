@@ -74,6 +74,7 @@ export function TimelinePanel({
 
   const playheadX = timeToPixel(currentTime, zoom) - scrollX;
   const totalWidth = timeToPixel(duration, zoom);
+  const selectedKfSet = useMemo(() => new Set(selectedKeyframeIds), [selectedKeyframeIds]);
   const targetGroups = useMemo(
     () => buildTargetGroups(tracks, targetLabels, targetOrder),
     [tracks, targetLabels, targetOrder],
@@ -322,7 +323,7 @@ export function TimelinePanel({
                           key={kf.id}
                           keyframe={kf}
                           x={x}
-                          isSelected={selectedKeyframeIds.includes(kf.id)}
+                          isSelected={selectedKfSet.has(kf.id)}
                           onSelect={(id, addToSelection) => {
                             if (addToSelection) onSelectKeyframes([...selectedKeyframeIds, id]);
                             else onSelectKeyframes([id]);
@@ -358,7 +359,7 @@ export function TimelinePanel({
                       key={kf.id}
                       keyframe={kf}
                       x={x}
-                      isSelected={selectedKeyframeIds.includes(kf.id)}
+                      isSelected={selectedKfSet.has(kf.id)}
                       onSelect={(id, addToSelection) => {
                         if (addToSelection) onSelectKeyframes([...selectedKeyframeIds, id]);
                         else onSelectKeyframes([id]);

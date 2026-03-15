@@ -51,8 +51,7 @@ export const useUndoRedoStore = create<UndoRedoState>()((set, get) => ({
       _batchHasPushed = true;
     }
 
-    // Deep clone the timeline so undo restores a distinct object reference
-    const currentTimeline = JSON.parse(JSON.stringify(useAnimationStore.getState().timeline));
+    const currentTimeline = structuredClone(useAnimationStore.getState().timeline);
     const currentTime = usePlaybackStore.getState().currentTime;
     set((state) => {
       const newPast = [...state.past, { timeline: currentTimeline, time: currentTime }];
@@ -81,7 +80,7 @@ export const useUndoRedoStore = create<UndoRedoState>()((set, get) => ({
     const { past } = get();
     if (past.length === 0) return null;
 
-    const currentTimeline = JSON.parse(JSON.stringify(useAnimationStore.getState().timeline));
+    const currentTimeline = structuredClone(useAnimationStore.getState().timeline);
     const currentTime = usePlaybackStore.getState().currentTime;
     const prev = past[past.length - 1];
     const newPast = past.slice(0, -1);
@@ -102,7 +101,7 @@ export const useUndoRedoStore = create<UndoRedoState>()((set, get) => ({
     const { future } = get();
     if (future.length === 0) return null;
 
-    const currentTimeline = JSON.parse(JSON.stringify(useAnimationStore.getState().timeline));
+    const currentTimeline = structuredClone(useAnimationStore.getState().timeline);
     const currentTime = usePlaybackStore.getState().currentTime;
     const next = future[0];
     const newFuture = future.slice(1);

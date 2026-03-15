@@ -50,9 +50,10 @@ export function useSelectionDerivedState(params: {
 
   const selectedKeyframeDetails = useMemo(() => {
     const result: { track: AnimationTrack; keyframe: Keyframe }[] = [];
+    const selectedKfSet = new Set(selectedKeyframeIds);
     for (const track of timeline.tracks) {
       for (const kf of track.keyframes) {
-        if (selectedKeyframeIds.includes(kf.id)) {
+        if (selectedKfSet.has(kf.id)) {
           result.push({ track, keyframe: kf });
         }
       }

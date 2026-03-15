@@ -70,7 +70,6 @@ export async function exportAnimatedSVG(options: ExportOptions): Promise<void> {
     const steps: string[] = [];
     for (let i = 0; i <= totalFrames; i++) {
       const time = clipStart + (i / totalFrames) * clipDuration;
-      engine.invalidateCache();
       const fs = engine.computeFrame(timeline, time);
       const st = fs.get(elId);
       if (!st) continue;

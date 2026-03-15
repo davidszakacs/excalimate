@@ -14,10 +14,11 @@ export function TimelinePanelWrapper(props: TimelinePanelWrapperProps) {
   const highlightedKeyframeIds = useMemo(() => {
     const ids = new Set<string>();
     const selectedIdSet = new Set(selectedElementIds);
+    const selectedKfSet = new Set(rawSelectedKeyframeIds);
     for (const track of tracks) {
       if (!selectedIdSet.has(track.targetId)) continue;
       for (const kf of track.keyframes) {
-        if (rawSelectedKeyframeIds.includes(kf.id)) ids.add(kf.id);
+        if (selectedKfSet.has(kf.id)) ids.add(kf.id);
         if (Math.abs(kf.time - currentTime) < 1) ids.add(kf.id);
       }
     }

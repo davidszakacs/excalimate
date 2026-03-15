@@ -47,7 +47,6 @@ export async function exportGIF(options: ExportOptions): Promise<void> {
 
   for (let i = 0; i <= totalFrames; i++) {
     const time = clipStart + (i / totalFrames) * clipDuration;
-    engine.invalidateCache();
     const frameState = engine.computeFrame(timeline, time);
 
     await renderFrame(elements, project.scene.files, frameState, targets, gifW, gifH, canvas);
