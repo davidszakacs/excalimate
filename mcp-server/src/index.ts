@@ -62,7 +62,7 @@ async function startStdioServer(factory: () => McpServer): Promise<void> {
 async function startHTTPServer(factoryWithSSE: (sseClients: Set<Response>, broadcastSSE: (data: string) => void) => McpServer): Promise<void> {
   const port = parseInt(process.env.PORT ?? '3001', 10);
   const app = express();
-  app.use(helmet({ contentSecurityPolicy: false })); // Security headers
+  app.use(helmet()); // Security headers
   app.use(cors({
     origin: getCorsOrigin(),
   }));
@@ -218,8 +218,7 @@ async function startHTTPServer(factoryWithSSE: (sseClients: Set<Response>, broad
       res.status(400).json({ error: 'Empty body. Send as application/octet-stream.' });
       return;
     }
-    const body = rawBody as Buffer;
-    if (body.length > MAX_SHARE_SIZE) {
+    if (rawBody.length > MAX_SHARE_SIZE) {
       res.status(413).json({ error: 'Payload too large' });
       return;
     }
@@ -228,7 +227,7 @@ async function startHTTPServer(factoryWithSSE: (sseClients: Set<Response>, broad
       const oldest = shareStore.keys().next().value;
       if (oldest !== undefined) shareStore.delete(oldest);
     }
-    shareStore.set(id, body);
+    shareStore.set(id, rawBody);
     res.json({ id, url: `/share/${id}` });
   });
 
