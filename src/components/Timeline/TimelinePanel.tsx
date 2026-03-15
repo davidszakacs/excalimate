@@ -8,12 +8,14 @@ import { TimeRuler } from './TimeRuler';
 import { timeToPixel } from './timelineMath';
 import {
   buildTargetGroups,
+  buildTrackSegments,
   HEADER_HEIGHT,
   MAX_ZOOM,
   MIN_ZOOM,
   TRACK_HEIGHT,
   TRACK_LIST_WIDTH,
   type TargetGroup,
+  type TrackSegment,
   type VisualTrack,
 } from './timelineModel';
 import { useTimelineInteractions, type TimelineRowData } from './useTimelineInteractions';
@@ -41,7 +43,9 @@ export interface TimelinePanelProps {
   zoom?: number;
 }
 
-type RowData = { type: 'target-header'; group: TargetGroup; collapsed: boolean } | { type: 'property'; vt: VisualTrack; group: TargetGroup };
+type RowData =
+  | { type: 'target-header'; group: TargetGroup; collapsed: boolean; segments: TrackSegment[] }
+  | { type: 'property'; vt: VisualTrack; group: TargetGroup; segments: TrackSegment[] };
 
 export function TimelinePanel({
   tracks,
@@ -96,10 +100,12 @@ export function TimelinePanel({
     const result: RowData[] = [];
     for (const group of targetGroups) {
       const collapsed = !expandedTargets.has(group.targetId);
-      result.push({ type: 'target-header', group, collapsed });
+      // Pre-compute segments once per group (collapsed) or per property track (expanded)
+      const headerSegments = collapsed ? buildTrackSegments(group.allTracks) : [];
+      result.push({ type: 'target-header', group, collapsed, segments: headerSegments });
       if (!collapsed) {
         for (const vt of group.propertyTracks) {
-          result.push({ type: 'property', vt, group });
+          result.push({ type: 'property', vt, group, segments: buildTrackSegments(vt.tracks) });
         }
       }
     }
@@ -328,6 +334,18 @@ export function TimelinePanel({
               }
               return (
                 <div key={`hdr-${group.targetId}`} className="relative border-b border-border bg-surface/[0.01]" style={{ height: TRACK_HEIGHT }}>
+                  {/* Pre-computed interpolation segments */}
+                  {collapsed && row.segments.map((seg, i) => {
+                    const x1 = timeToPixel(seg.t1, zoom) - scrollX;
+                    const w = timeToPixel(seg.t2, zoom) - scrollX - x1;
+                    return w > 0 ? (
+                      <div
+                        key={`seg-${i}`}
+                        className={`absolute pointer-events-none rounded-sm ${seg.changing ? 'bg-indigo-500/50 h-[2px] -mt-px' : 'bg-border/20 h-px'}`}
+                        style={{ left: x1, width: w, top: '50%' }}
+                      />
+                    ) : null;
+                  })}
                   {collapsed &&
                     allKfs.map(({ kf, trackId }) => {
                       const x = timeToPixel(kf.time, zoom) - scrollX;
@@ -357,6 +375,7 @@ export function TimelinePanel({
                 allKfs.push({ kf, trackId: t.id });
               }
             }
+
             return (
               <div
                 key={vt.id}
@@ -365,6 +384,18 @@ export function TimelinePanel({
                 style={{ height: TRACK_HEIGHT }}
                 onDoubleClick={(e) => handleKeyframeAreaClick(e, vt.tracks[0].id)}
               >
+                {/* Pre-computed interpolation segments */}
+                {row.segments.map((seg, i) => {
+                  const x1 = timeToPixel(seg.t1, zoom) - scrollX;
+                  const w = timeToPixel(seg.t2, zoom) - scrollX - x1;
+                  return w > 0 ? (
+                    <div
+                      key={`seg-${i}`}
+                      className={`absolute pointer-events-none rounded-sm ${seg.changing ? 'bg-indigo-500/60 h-[2px] -mt-px' : 'bg-border/30 h-px'}`}
+                      style={{ left: x1, width: w, top: '50%' }}
+                    />
+                  ) : null;
+                })}
                 {allKfs.map(({ kf, trackId }) => {
                   const x = timeToPixel(kf.time, zoom) - scrollX;
                   return (

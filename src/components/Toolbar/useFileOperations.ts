@@ -1,12 +1,16 @@
 import { useProjectStore } from '../../stores/projectStore';
 import { useAnimationStore } from '../../stores/animationStore';
 import {
-  importExcalidrawFile,
-  loadMcpCheckpoint,
-  loadProjectFile,
+  parseExcalidrawFileBlob,
+  parseProjectFileBlob,
+  parseMcpCheckpointBlob,
+  importFromUrl,
+  loadShareUrl,
   saveProjectFile,
 } from '../../services/FileService';
 import { extractTargets } from '../Canvas/extractTargets';
+import { computeFrameAtTime } from '../../core/engine/playbackSingleton';
+import { useUIStore } from '../../stores/uiStore';
 
 function resetTimeline() {
   useAnimationStore.getState().setTimeline({
@@ -16,6 +20,17 @@ function resetTimeline() {
     fps: 60,
     tracks: [],
   });
+}
+
+function importScene(name: string, scene: { elements: unknown[]; appState?: unknown; files?: unknown }) {
+  useProjectStore.getState().createNewProject(name, {
+    elements: scene.elements,
+    appState: scene.appState ?? {},
+    files: scene.files ?? {},
+  });
+  const targets = extractTargets(scene.elements as import('@excalidraw/excalidraw/element/types').ExcalidrawElement[]);
+  useProjectStore.getState().setTargets(targets);
+  resetTimeline();
 }
 
 export function useFileOperations() {
@@ -30,26 +45,7 @@ export function useFileOperations() {
     resetTimeline();
   };
 
-  const handleOpen = async () => {
-    try {
-      const project = await loadProjectFile();
-      useProjectStore.getState().loadProject(project);
-      if (project.cameraFrame) {
-        useProjectStore.getState().setCameraFrame(project.cameraFrame);
-      }
-      const targets = extractTargets(project.scene.elements);
-      useProjectStore.getState().setTargets(targets);
-      useAnimationStore.getState().setTimeline(project.timeline);
-      if (project.clipStart !== undefined && project.clipEnd !== undefined) {
-        useAnimationStore.getState().setClipRange(project.clipStart, project.clipEnd);
-      }
-    } catch (e) {
-      if (e instanceof DOMException && e.name === 'AbortError') return;
-      window.alert(`Failed to open project: ${e instanceof Error ? e.message : 'Unknown error'}`);
-    }
-  };
-
-  const handleSave = async () => {
+  const handleSave= async () => {
     const project = useProjectStore.getState().project;
     if (!project) {
       window.alert('No project to save. Create or import a project first.');
@@ -74,39 +70,70 @@ export function useFileOperations() {
     }
   };
 
-  const handleImportFile = async () => {
-    try {
-      const scene = await importExcalidrawFile();
-      useProjectStore.getState().createNewProject('Imported Animation', scene);
-      const targets = extractTargets(scene.elements);
-      useProjectStore.getState().setTargets(targets);
+  const handleImportFile = async (file: File) => {
+    const scene = await parseExcalidrawFileBlob(file);
+    importScene('Imported Animation', scene);
+  };
+
+  const handleImportUrl = async (url: string) => {
+    const scene = await importFromUrl(url);
+    importScene('Imported from URL', scene);
+  };
+
+  /** Load a .excanim project file (from drag & drop) */
+  const handleLoadProjectFile = async (file: File) => {
+    const project = await parseProjectFileBlob(file);
+    useProjectStore.getState().loadProject(project);
+    if (project.cameraFrame) {
+      useProjectStore.getState().setCameraFrame(project.cameraFrame);
+    }
+    const targets = extractTargets(project.scene.elements);
+    useProjectStore.getState().setTargets(targets);
+    useAnimationStore.getState().setTimeline(project.timeline);
+    if (project.clipStart !== undefined && project.clipEnd !== undefined) {
+      useAnimationStore.getState().setClipRange(project.clipStart, project.clipEnd);
+    }
+    useUIStore.getState().setMode('animate');
+    computeFrameAtTime(0);
+  };
+
+  /** Load an MCP checkpoint file (from drag & drop) */
+  const handleLoadCheckpointFile = async (file: File) => {
+    const checkpoint = await parseMcpCheckpointBlob(file);
+    useProjectStore.getState().createNewProject('MCP Checkpoint', checkpoint.scene);
+    const targets = extractTargets(checkpoint.scene.elements);
+    useProjectStore.getState().setTargets(targets);
+    if (checkpoint.timeline) {
+      useAnimationStore.getState().setTimeline(checkpoint.timeline);
+    } else {
       resetTimeline();
-    } catch (e) {
-      if (e instanceof DOMException && e.name === 'AbortError') return;
-      window.alert(`Failed to import: ${e instanceof Error ? e.message : 'Unknown error'}`);
     }
+    if (checkpoint.cameraFrame) {
+      useProjectStore.getState().setCameraFrame(checkpoint.cameraFrame);
+    }
+    useAnimationStore.getState().setClipRange(checkpoint.clipStart, checkpoint.clipEnd);
+    useUIStore.getState().setMode('animate');
+    computeFrameAtTime(0);
   };
 
-  const handleLoadCheckpoint = async () => {
-    try {
-      const checkpoint = await loadMcpCheckpoint();
-      useProjectStore.getState().createNewProject('MCP Checkpoint', checkpoint.scene);
-      const targets = extractTargets(checkpoint.scene.elements);
-      useProjectStore.getState().setTargets(targets);
-      if (checkpoint.timeline) {
-        useAnimationStore.getState().setTimeline(checkpoint.timeline);
-      } else {
-        resetTimeline();
-      }
-      if (checkpoint.cameraFrame) {
-        useProjectStore.getState().setCameraFrame(checkpoint.cameraFrame);
-      }
-      useAnimationStore.getState().setClipRange(checkpoint.clipStart, checkpoint.clipEnd);
-    } catch (e) {
-      if (e instanceof DOMException && e.name === 'AbortError') return;
-      window.alert(`Failed to load checkpoint: ${e instanceof Error ? e.message : 'Unknown error'}`);
+  /** Load from an E2E encrypted share URL */
+  const handleLoadShareUrl = async (url: string) => {
+    const data = await loadShareUrl(url);
+    useProjectStore.getState().createNewProject('Shared Animation', data.scene);
+    const targets = extractTargets(data.scene.elements);
+    useProjectStore.getState().setTargets(targets);
+    if (data.timeline) useAnimationStore.getState().setTimeline(data.timeline);
+    if (data.cameraFrame) useProjectStore.getState().setCameraFrame(data.cameraFrame);
+    if (data.clipStart !== undefined && data.clipEnd !== undefined) {
+      useAnimationStore.getState().setClipRange(data.clipStart, data.clipEnd);
     }
+    useUIStore.getState().setMode('animate');
+    computeFrameAtTime(0);
   };
 
-  return { handleNew, handleOpen, handleSave, handleImportFile, handleLoadCheckpoint };
+  return {
+    handleNew, handleSave,
+    handleImportFile, handleImportUrl,
+    handleLoadProjectFile, handleLoadCheckpointFile, handleLoadShareUrl,
+  };
 }

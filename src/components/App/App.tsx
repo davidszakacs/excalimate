@@ -1,7 +1,9 @@
-import { Suspense, lazy, useEffect } from 'react';
-import { MantineProvider } from '@mantine/core';
+import { Suspense, lazy, useEffect, useCallback } from 'react';
+import { MantineProvider, CloseButton, ActionIcon, Tooltip } from '@mantine/core';
+import { IconLayoutSidebarLeftExpand } from '@tabler/icons-react';
 import { Notifications } from '@mantine/notifications';
 import { ModalsProvider } from '@mantine/modals';
+import { NavigationProgress } from '@mantine/nprogress';
 import { Toolbar } from '../Toolbar';
 import { LayersPanel } from '../Layers/LayersPanel';
 import { SequenceRevealPanel } from '../SequenceReveal/SequenceRevealPanel';
@@ -32,6 +34,18 @@ export function App() {
 
   getPlaybackController();
   useShareLoader();
+
+  // Prevent browser zoom on Ctrl+Scroll anywhere in the app.
+  // The Excalidraw canvas handles its own zoom internally.
+  useEffect(() => {
+    const handler = (e: WheelEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+      }
+    };
+    document.addEventListener('wheel', handler, { passive: false });
+    return () => document.removeEventListener('wheel', handler);
+  }, []);
 
   // Apply theme to the document element and Mantine color scheme
   const theme = useUIStore((s) => s.theme);
@@ -86,10 +100,16 @@ export function App() {
     handleResizeElement,
   } = useKeyframeActions();
 
+  const closePropertyPanel = useCallback(() => {
+    useUIStore.getState().setSelectedElements([]);
+    useAnimationStore.getState().clearKeyframeSelection();
+  }, []);
+
   return (
     <MantineProvider forceColorScheme={mantineColorScheme}>
       <ModalsProvider>
-        <Notifications position="top-right" />
+        <Notifications position="bottom-right" />
+        <NavigationProgress />
         <div className="flex flex-col h-screen w-screen bg-surface text-text">
           {/* Top toolbar */}
           <Toolbar />
@@ -139,11 +159,31 @@ export function App() {
               selectedElementIds={selectedElementIds}
             />
           )}
+          {/* Layers toggle (floating, animate mode only, visible when panel is closed) */}
+          {mode === 'animate' && !layersPanelOpen && (
+            <div className="absolute top-2 left-2 z-20">
+              <Tooltip label="Show layers" position="right">
+                <ActionIcon
+                  variant="filled"
+                  color="indigo"
+                  size="md"
+                  onClick={() => useUIStore.getState().toggleLayersPanel()}
+                >
+                  <IconLayoutSidebarLeftExpand size={18} />
+                </ActionIcon>
+              </Tooltip>
+            </div>
+          )}
         </main>
 
         {/* Right: Property panel (visible when elements or keyframes selected) */}
         {(selectedTargets.length > 0 || selectedKeyframeIds.length > 0) && (
-        <aside className="w-[280px] border border-border bg-surface rounded-lg shadow-float overflow-y-auto shrink-0">
+        <aside className="w-[280px] border border-border bg-surface rounded-lg shadow-float overflow-hidden shrink-0 flex flex-col">
+          <div className="flex items-center justify-between px-3 py-1.5 border-b border-border shrink-0">
+            <span className="text-[10px] text-text-muted uppercase tracking-wider font-semibold">Properties</span>
+            <CloseButton size="sm" onClick={closePropertyPanel} />
+          </div>
+          <div className="flex-1 overflow-y-auto">
           <ErrorBoundary fallback={<div className="flex items-center justify-center h-full text-sm text-danger">Property panel error</div>}>
             <PropertyPanelWrapper
               selectedTargets={selectedTargets}
@@ -157,6 +197,7 @@ export function App() {
               onSelectTarget={handleSelectTarget}
             />
           </ErrorBoundary>
+          </div>
         </aside>
         )}
       </div>

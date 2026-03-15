@@ -53,7 +53,37 @@ export const TRACK_HEIGHT = 28;
 export const HEADER_HEIGHT = 24;
 export const TRACK_LIST_WIDTH = 200;
 export const MIN_ZOOM = 0.02;
+
+/** A visual segment connecting two consecutive keyframes in the timeline. */
+export type TrackSegment = {
+  /** Start time in ms */
+  t1: number;
+  /** End time in ms */
+  t2: number;
+  /** Whether the value changes between the two keyframes */
+  changing: boolean;
+};
 export const MAX_ZOOM = 1;
+
+/**
+ * Build interpolation segments for a set of tracks.
+ * Keyframes are assumed to be sorted by time (they are in the data model).
+ * Returns segments with time values (not pixel values) for zoom-independent memoization.
+ */
+export function buildTrackSegments(tracks: AnimationTrack[]): TrackSegment[] {
+  const segments: TrackSegment[] = [];
+  for (const t of tracks) {
+    const kfs = t.keyframes; // already sorted by time
+    for (let i = 0; i < kfs.length - 1; i++) {
+      segments.push({
+        t1: kfs[i].time,
+        t2: kfs[i + 1].time,
+        changing: kfs[i].value !== kfs[i + 1].value,
+      });
+    }
+  }
+  return segments;
+}
 
 export function buildTargetGroups(
   tracks: AnimationTrack[],

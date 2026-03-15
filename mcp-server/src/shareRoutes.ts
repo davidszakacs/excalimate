@@ -10,7 +10,7 @@ export function registerShareRoutes(app: Express, shareLimiter: RateLimitRequest
 
   // Upload encrypted blob
   app.post('/share', shareLimiter, express.raw({ type: 'application/octet-stream', limit: '10mb' }), (req: Request, res: Response) => {
-    const id = crypto.randomUUID().replace(/-/g, '').slice(0, 16);
+    const id = crypto.randomUUID().replace(/-/g, '').slice(0, 8);
     const rawBody = req.body as unknown;
     if (!Buffer.isBuffer(rawBody) || rawBody.length === 0) {
       res.status(400).json({ error: 'Empty body. Send as application/octet-stream.' });

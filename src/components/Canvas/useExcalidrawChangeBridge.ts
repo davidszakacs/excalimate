@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import type { ExcalidrawElement } from '@excalidraw/excalidraw/element/types';
 import { setCanvasViewport } from './canvasViewport';
 import { useProjectStore } from '../../stores/projectStore';
@@ -22,6 +22,8 @@ export function useExcalidrawChangeBridge(params: {
     onDragRef,
     onResizeRef,
   } = refs;
+
+  const lastSelectionRef = useRef<string[]>([]);
 
   return useCallback(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -50,12 +52,16 @@ export function useExcalidrawChangeBridge(params: {
       }
       if (!apiRef.current) return;
 
-      // Report selection changes
+      // Report selection changes (only when they actually change)
       if (appState?.selectedElementIds) {
         const selectedIds = Object.keys(appState.selectedElementIds).filter(
           (id: string) => appState.selectedElementIds[id],
         );
-        onSelectRef.current(selectedIds);
+        const prev = lastSelectionRef.current;
+        if (selectedIds.length !== prev.length || selectedIds.some((id, i) => id !== prev[i])) {
+          lastSelectionRef.current = selectedIds;
+          onSelectRef.current(selectedIds);
+        }
       }
 
       // Detect z-order changes (send to front/back) and update the source scene.

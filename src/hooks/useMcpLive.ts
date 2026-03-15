@@ -13,7 +13,27 @@ import { useUIStore } from '../stores/uiStore';
 import { extractTargets } from '../components/Canvas/extractTargets';
 import { computeFrameAtTime } from '../core/engine/playbackSingleton';
 
-const DEFAULT_URL = import.meta.env.VITE_MCP_SERVER_URL ?? 'http://localhost:3001';
+const STORAGE_KEY = 'excalimate-mcp-url';
+
+function getPersistedMcpUrl(): string {
+  try {
+    return localStorage.getItem(STORAGE_KEY) || import.meta.env.VITE_MCP_SERVER_URL || 'http://localhost:3001';
+  } catch {
+    return import.meta.env.VITE_MCP_SERVER_URL || 'http://localhost:3001';
+  }
+}
+
+function persistMcpUrl(url: string): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, url);
+  } catch {
+    // Best effort persistence.
+  }
+}
+
+export function getMcpUrl(): string {
+  return getPersistedMcpUrl();
+}
 
 /** Reconnection constants */
 const RECONNECT_BASE_MS = 1000;
@@ -25,12 +45,22 @@ export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 're
 
 export function useMcpLive() {
   const [status, setStatus] = useState<ConnectionStatus>('disconnected');
-  const [liveUrl, setLiveUrl] = useState(DEFAULT_URL);
+  const [liveUrl, setLiveUrlState] = useState(getPersistedMcpUrl());
+  const [lastError, setLastError] = useState<string | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectAttemptRef = useRef(0);
   const intentionalDisconnectRef = useRef(false);
+
+  const setLiveUrl = useCallback((url: string) => {
+    setLiveUrlState(url);
+    persistMcpUrl(url);
+  }, []);
+
+  const clearError = useCallback(() => {
+    setLastError(null);
+  }, []);
 
   /** Fetch full state from the server and apply it. */
   async function syncState(url: string): Promise<void> {
@@ -53,6 +83,7 @@ export function useMcpLive() {
     } catch (e) {
       if ((e as Error).name !== 'AbortError') {
         console.error('[MCP Live] Failed to fetch state:', e);
+        setLastError('connection_failed');
       }
     } finally {
       clearTimeout(timeoutId);
@@ -67,7 +98,7 @@ export function useMcpLive() {
     return Math.max(0, base + jitter);
   }
 
-  const connect = useCallback((url: string = liveUrl) => {
+  const connect = useCallback((url: string = getMcpUrl()) => {
     // Clean up any existing connection/timers
     if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
     reconnectTimerRef.current = null;
@@ -75,17 +106,21 @@ export function useMcpLive() {
     eventSourceRef.current?.close();
     intentionalDisconnectRef.current = false;
     reconnectAttemptRef.current = 0;
+    setLastError(null);
 
-    function openConnection() {
-      setStatus('connecting');
+    function openConnection(isReconnect = false) {
+      setStatus(isReconnect ? 'reconnecting' : 'connecting');
 
       const es = new EventSource(`${url}/live`);
       eventSourceRef.current = es;
+      let hasConnected = false;
 
       es.onopen = () => {
         if (import.meta.env.DEV) console.log('[MCP Live] Connected to', url);
+        hasConnected = true;
         reconnectAttemptRef.current = 0;
         setStatus('connected');
+        useUIStore.getState().setLiveMode(true);
 
         // Re-sync full state on every (re)connect to recover from missed SSE messages
         syncState(url);
@@ -111,20 +146,25 @@ export function useMcpLive() {
           return;
         }
 
+        if (!hasConnected) {
+          setStatus('disconnected');
+          setLastError('connection_failed');
+          return;
+        }
+
         // Schedule reconnect with backoff
         const delay = getReconnectDelay();
         reconnectAttemptRef.current++;
         if (import.meta.env.DEV) {
           console.log(`[MCP Live] Connection lost. Reconnecting in ${Math.round(delay)}ms (attempt ${reconnectAttemptRef.current})`);
         }
-        setStatus('reconnecting');
-        reconnectTimerRef.current = setTimeout(openConnection, delay);
+        reconnectTimerRef.current = setTimeout(() => openConnection(true), delay);
       };
     }
 
     openConnection();
     setLiveUrl(url);
-  }, [liveUrl]);
+  }, [setLiveUrl]);
 
   const disconnect = useCallback(() => {
     intentionalDisconnectRef.current = true;
@@ -134,6 +174,7 @@ export function useMcpLive() {
     eventSourceRef.current?.close();
     eventSourceRef.current = null;
     reconnectAttemptRef.current = 0;
+    useUIStore.getState().setLiveMode(false);
     setStatus('disconnected');
     if (import.meta.env.DEV) console.log('[MCP Live] Disconnected');
   }, []);
@@ -151,7 +192,7 @@ export function useMcpLive() {
   // Backwards-compatible: expose `connected` boolean alongside richer `status`
   const connected = status === 'connected';
 
-  return { connected, status, connect, disconnect, liveUrl, setLiveUrl };
+  return { connected, status, connect, disconnect, liveUrl, setLiveUrl, lastError, clearError };
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

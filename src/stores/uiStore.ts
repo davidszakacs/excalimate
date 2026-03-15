@@ -23,6 +23,7 @@ interface UIState {
   ghostMode: boolean;
   sequenceRevealOpen: boolean;
   layersPanelOpen: boolean;
+  liveMode: boolean;
 
   // Actions
   setMode: (mode: AppMode) => void;
@@ -39,6 +40,7 @@ interface UIState {
   toggleGhostMode: () => void;
   toggleSequenceReveal: () => void;
   toggleLayersPanel: () => void;
+  setLiveMode: (live: boolean) => void;
 }
 
 export const useUIStore = create<UIState>()((set) => ({
@@ -48,6 +50,7 @@ export const useUIStore = create<UIState>()((set) => ({
   ghostMode: false,
   sequenceRevealOpen: false,
   layersPanelOpen: true,
+  liveMode: false,
   panelSizes: {
     leftPanel: 48,
     rightPanel: 280,
@@ -133,5 +136,8 @@ export const useUIStore = create<UIState>()((set) => ({
   },
   toggleLayersPanel: (): void => {
     set((state) => ({ layersPanelOpen: !state.layersPanelOpen }));
+  },
+  setLiveMode: (live: boolean): void => {
+    set({ liveMode: live });
   },
 }));

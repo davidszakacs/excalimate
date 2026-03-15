@@ -18,8 +18,8 @@ This project uses **@tabler/icons-react** exclusively for all icons. No other ic
 
 ## Key References
 
-| Document | Purpose |
-|----------|---------|
+| Document                  | Purpose                                                 |
+| ------------------------- | ------------------------------------------------------- |
 | `docs/mantine-library.md` | Mantine component library API reference and usage guide |
 
 ## Coding Conventions
@@ -30,4 +30,6 @@ This project uses **@tabler/icons-react** exclusively for all icons. No other ic
 - **Styling** — Mantine's built-in styling system + Tailwind CSS for utility classes.
 - **File structure** — follow the modular decomposition pattern (hooks extracted from components, pure logic separated from UI).
 - **Linting** — run `npx eslint` on changed files before committing.
+- **Notifications** — use Mantine `notifications.show()` for user feedback. Notifications render in the bottom-right corner.
+- **Hotkeys** — use Mantine `useHotkeys` from `@mantine/hooks` for all keyboard shortcuts. Register app-wide hotkeys in `src/hooks/useAppHotkeys.ts`.
 - **MCP Server** — `mcp-server/src/` uses ESM with `.js` import extensions.

@@ -199,8 +199,18 @@ export function ExcalidrawAnimateEditor({
     refs,
   });
 
+  // Trigger overlay re-render at animation-frame rate when viewport changes
+  const [, setViewportTick] = useState(0);
+  const rafRef = useRef(0);
+
   const setViewportRef = useCallback((vp: { scrollX: number; scrollY: number; zoom: number; width: number; height: number }) => {
     viewportRef.current = vp;
+    if (!rafRef.current) {
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = 0;
+        setViewportTick((t) => t + 1);
+      });
+    }
   }, []);
 
   const handleChange = useExcalidrawChangeBridge({

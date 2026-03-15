@@ -22,4 +22,6 @@ This project uses **@tabler/icons-react** exclusively for all icons. No other ic
 - Mantine styling system + Tailwind CSS for utility classes.
 - Modular file structure: hooks extracted from components, pure logic separated from UI.
 - Run `npx eslint` on changed files before committing.
+- Notifications: use Mantine `notifications.show()` for user feedback. Notifications render in the bottom-right corner.
+- Hotkeys: use Mantine `useHotkeys` from `@mantine/hooks` for all keyboard shortcuts. Register app-wide hotkeys in `src/hooks/useAppHotkeys.ts`.
 - MCP server (`mcp-server/src/`) uses ESM with `.js` import extensions.

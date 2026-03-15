@@ -3,9 +3,12 @@ import {
   IconRectangle, IconOval, IconSquareRotated, IconLine, IconArrowRight,
   IconTypography, IconBrush, IconPhoto, IconMovie, IconBoxMultiple, IconShape,
   IconChevronDown, IconChevronRight, IconKeyframeFilled,
+  IconLayoutSidebarLeftCollapse,
 } from '@tabler/icons-react';
+import { ActionIcon, Tooltip } from '@mantine/core';
 import type { AnimatableTarget } from '../../types/excalidraw';
 import type { AnimationTrack } from '../../types/animation';
+import { useUIStore } from '../../stores/uiStore';
 
 interface LayersPanelProps {
   targets: AnimatableTarget[];
@@ -193,10 +196,15 @@ export function LayersPanel({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-3 py-2 border-b border-border">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-border">
         <span className="text-[10px] text-text-muted uppercase tracking-wider font-semibold">
           Layers
         </span>
+        <Tooltip label="Collapse layers" position="right">
+          <ActionIcon variant="subtle" color="gray" size="xs" onClick={() => useUIStore.getState().toggleLayersPanel()}>
+            <IconLayoutSidebarLeftCollapse size={14} />
+          </ActionIcon>
+        </Tooltip>
       </div>
 
       <div className="flex-1 overflow-y-auto text-xs">

@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { notifications } from '@mantine/notifications';
 import { computeFrameAtTime } from '../../core/engine/playbackSingleton';
 import { useAnimationStore } from '../../stores/animationStore';
 import { CAMERA_FRAME_TARGET_ID, useProjectStore } from '../../stores/projectStore';
@@ -7,6 +8,22 @@ import { useUndoRedoStore } from '../../stores/undoRedoStore';
 import { usePlaybackStore } from '../../stores/playbackStore';
 import { PROPERTY_DEFAULTS } from '../../types/animation';
 import type { AnimatableProperty, Keyframe } from '../../types/animation';
+
+const LIVE_MODE_MSG_ID = 'live-mode-readonly';
+
+function guardLiveMode(): boolean {
+  if (useUIStore.getState().liveMode) {
+    notifications.show({
+      id: LIVE_MODE_MSG_ID,
+      title: 'Live mode is active',
+      message: 'Keyframe editing is disabled while connected to the MCP server. Disconnect to edit.',
+      color: 'yellow',
+      autoClose: 3000,
+    });
+    return true;
+  }
+  return false;
+}
 
 export function useKeyframeActions(): {
   handleScrub: (time: number) => void;
@@ -38,30 +55,36 @@ export function useKeyframeActions(): {
   }, []);
 
   const handleAddKeyframe = useCallback((trackId: string, time: number, value: number) => {
+    if (guardLiveMode()) return;
     useUndoRedoStore.getState().pushState();
     useAnimationStore.getState().addKeyframe(trackId, time, value);
   }, []);
 
   const handleMoveKeyframe = useCallback((trackId: string, kfId: string, newTime: number) => {
+    if (guardLiveMode()) return;
     useAnimationStore.getState().moveKeyframe(trackId, kfId, newTime);
   }, []);
 
   const handleRemoveKeyframe = useCallback((trackId: string, kfId: string) => {
+    if (guardLiveMode()) return;
     useUndoRedoStore.getState().pushState();
     useAnimationStore.getState().removeKeyframe(trackId, kfId);
   }, []);
 
   const handleToggleTrackEnabled = useCallback((trackId: string) => {
+    if (guardLiveMode()) return;
     useUndoRedoStore.getState().pushState();
     useAnimationStore.getState().toggleTrackEnabled(trackId);
   }, []);
 
   const handleRemoveTrack = useCallback((trackId: string) => {
+    if (guardLiveMode()) return;
     useUndoRedoStore.getState().pushState();
     useAnimationStore.getState().removeTrack(trackId);
   }, []);
 
   const handleUpdateKeyframe = useCallback((...args: [string, string, Partial<Pick<Keyframe, 'time' | 'value' | 'easing'>>]) => {
+    if (guardLiveMode()) return;
     useUndoRedoStore.getState().pushState();
     useAnimationStore.getState().updateKeyframe(...args);
   }, []);
@@ -75,6 +98,7 @@ export function useKeyframeActions(): {
   }, []);
 
   const handleAddOrUpdateKeyframe = useCallback((trackId: string, time: number, value: number) => {
+    if (guardLiveMode()) return;
     useUndoRedoStore.getState().pushState();
     const store = useAnimationStore.getState();
     const track = store.timeline.tracks.find((t) => t.id === trackId);
@@ -107,6 +131,7 @@ export function useKeyframeActions(): {
   }, []);
 
   const handleDragElement = useCallback((targetId: string, deltaX: number, deltaY: number) => {
+    if (guardLiveMode()) return;
     useUndoRedoStore.getState().pushState();
     const store = useAnimationStore.getState();
     const time = Math.round(usePlaybackStore.getState().currentTime);
@@ -139,6 +164,7 @@ export function useKeyframeActions(): {
   }, []);
 
   const handleAddTrackProp = useCallback((targetId: string, targetType: 'element' | 'group', property: AnimatableProperty) => {
+    if (guardLiveMode()) return;
     useUndoRedoStore.getState().pushState();
     const store = useAnimationStore.getState();
     const time = Math.round(usePlaybackStore.getState().currentTime);
@@ -171,6 +197,7 @@ export function useKeyframeActions(): {
   }, []);
 
   const handleResizeElement = useCallback((targetId: string, dScaleX: number, dScaleY: number) => {
+    if (guardLiveMode()) return;
     useUndoRedoStore.getState().pushState();
     const store = useAnimationStore.getState();
     const time = Math.round(usePlaybackStore.getState().currentTime);

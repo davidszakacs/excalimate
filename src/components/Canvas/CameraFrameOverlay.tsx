@@ -45,7 +45,7 @@ export function CameraFrameOverlay({
         }}
       >
         <span
-          className="absolute text-white text-[10px] px-1 rounded-sm flex items-center gap-0.5"
+          className="absolute text-white text-[10px] px-1 rounded-sm flex items-center gap-0.5 select-none pointer-events-none"
           style={{ top: -18, left: 0, background: 'var(--color-overlay-heavy)' }}
         >
           <IconMovie size={10} /> {aspectRatio}

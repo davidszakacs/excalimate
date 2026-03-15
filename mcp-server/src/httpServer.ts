@@ -46,9 +46,10 @@ function getCorsOrigin() {
 }
 
 export async function startHTTPServer(
-  factoryWithSSE: (sseClients: Set<Response>, broadcastSSE: (data: string) => void) => McpServer,
+  factoryWithSSE: (sseClients: Set<Response>, broadcastSSE: (data: string) => void, port: number) => McpServer,
+  portOverride?: number,
 ): Promise<void> {
-  const port = parseInt(process.env.PORT ?? '3001', 10);
+  const port = portOverride ?? parseInt(process.env.PORT ?? '3001', 10);
   const app = express();
   app.use(helmet()); // Security headers
   app.use(cors({
@@ -98,7 +99,7 @@ export async function startHTTPServer(
   }
 
   // Factory that wires SSE broadcasting
-  const factory = () => factoryWithSSE(sseClients, broadcastSSE);
+  const factory = () => factoryWithSSE(sseClients, broadcastSSE, port);
 
   // Session map: keep server + transport alive across requests
   const sessions = new Map<
