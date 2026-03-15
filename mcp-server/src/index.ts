@@ -19,6 +19,42 @@ import type { Request, Response } from 'express';
 import { FileCheckpointStore } from './checkpoint-store.js';
 import { createServer, getSharedState } from './server.js';
 
+function getCorsOrigin(): Parameters<typeof cors>[0]['origin'] {
+  const raw = process.env.CORS_ORIGIN;
+
+  if (!raw || !raw.trim()) {
+    // No CORS origin configured: disable CORS by default
+    return false;
+  }
+
+  const origins = raw
+    .split(',')
+    .map((o) => o.trim())
+    .filter((o) => o.length > 0);
+
+  if (origins.length === 0) {
+    return false;
+  }
+
+  if (origins.length === 1) {
+    return origins[0];
+  }
+
+  // Multiple allowed origins: validate incoming origin against the list
+  return (origin, callback) => {
+    // Allow requests without an Origin header (e.g., same-origin or non-browser clients)
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    if (origins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error('Not allowed by CORS'), false);
+  };
+}
+
 async function startStdioServer(factory: () => McpServer): Promise<void> {
   await factory().connect(new StdioServerTransport());
 }
@@ -28,7 +64,7 @@ async function startHTTPServer(factoryWithSSE: (sseClients: Set<Response>, broad
   const app = express();
   app.use(helmet({ contentSecurityPolicy: false })); // Security headers
   app.use(cors({
-    origin: process.env.CORS_ORIGIN ?? '*',
+    origin: getCorsOrigin(),
   }));
 
   // Rate limiting
