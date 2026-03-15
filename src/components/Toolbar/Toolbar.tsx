@@ -15,9 +15,7 @@ export function Toolbar() {
     <header role="toolbar" aria-label="Main toolbar" className="flex items-center h-10 px-2 gap-1 border-b border-[var(--color-border)] bg-[var(--color-surface-secondary)] select-none">
       {/* Left section: Logo and file controls */}
       <div className="flex items-center gap-1 mr-4">
-        <span className="text-sm font-semibold text-indigo-400 mr-2">
-          ✦ Excalimate
-        </span>
+        <img src="/excalimate_logo_dark.svg" alt="Excalimate logo" className="w-auto h-5" />
         <FileControls />
       </div>
 
